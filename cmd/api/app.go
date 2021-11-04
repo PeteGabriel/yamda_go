@@ -42,11 +42,15 @@ func (app *Application) ParseId(p httprouter.Params) (int64, error) {
 	return id, nil
 }
 
+//envelope type. Allows to insert types inside and self-document them in JSON responses.
+type envelope map[string]interface{}
+
+
 //Helper method for sending JSON responses. This takes the destination
 // http.ResponseWriter, the HTTP status code to send, the data to encode to JSON, and a
 // header map containing any additional HTTP headers we want to include in the response.
 //By default, the header "Content-Type" is set to "application/json".
-func (app *Application) writeJSON(w http.ResponseWriter, status int, data interface{}, headers http.Header) error {
+func (app *Application) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
 	resp, err := json.Marshal(data)
 	if err != nil {
 		app.log.Println(err)

@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"log"
+	"net/http"
 	"strconv"
 	"yamda_go/internal/config"
 )
@@ -38,4 +40,24 @@ func (app *Application) ParseId(p httprouter.Params) (int64, error) {
 	if err != nil || id < 1 {
 		return -1, errors.New("invalid id parameter from route parameters") }
 	return id, nil
+}
+
+//Helper method for sending JSON responses. This takes the destination
+// http.ResponseWriter, the HTTP status code to send, the data to encode to JSON, and a
+// header map containing any additional HTTP headers we want to include in the response.
+//By default, the header "Content-Type" is set to "application/json".
+func (app *Application) writeJSON(w http.ResponseWriter, status int, data interface{}, headers http.Header) error {
+	resp, err := json.Marshal(data)
+	if err != nil {
+		app.log.Println(err)
+		return errors.Wrap(err, "an error happened at the server level")
+	}
+	//apply all values to respective header keys
+	for key, value := range headers {
+		w.Header()[key] = value
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)//status must be the last write
+	w.Write(resp)
+	return nil
 }

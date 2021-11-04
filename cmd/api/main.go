@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 	"time"
-	"yamda_go/internal"
+	"yamda_go/internal/config"
 )
 
 func main() {

@@ -1,14 +1,18 @@
 package main
 
 import (
-	"fmt"
 	"github.com/julienschmidt/httprouter"
+	"github.com/pkg/errors"
 	"log"
-	"net/http"
+	"strconv"
+	"yamda_go/internal/config"
 )
 
 //TODO generate this automatically at build time
-const version = "0.0.1"
+const (
+	version = "0.0.1"
+	ID = "id"
+)
 
 //Application type contains all dependencies for the top layer of
 //the API.
@@ -18,18 +22,20 @@ type Application struct {
 }
 
 
-// HealthCheckHandler handler writes a plain-text response with information about the
-// application status, operating environment and version.
-func (app *Application) HealthCheckHandler(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
-	fmt.Fprintln(w, "status: available")
-	fmt.Fprintf(w, "environment: %s\n", app.config.Env)
-	fmt.Fprintf(w, "version: %s\n", version)
-}
-
-func (app *Application) CreateMovieHandler(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
-
-}
-
-func (app *Application) GetMovieHandler(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
-
+//ParseId parses the parameter id present in a given
+//route params sent via parameters to this function.
+//If the parameter id is not found an error will be returned.
+//method doesn't use any dependencies from our application struct
+//it could just be a regular function, rather than a method on application.
+//But in general, I suggest setting up all your application-specific handlers
+//and helpers so that they are methods on application.
+//It helps maintain consistency in your code structure,
+//and also future-proofs your code for when those handlers and helpers change later,
+//and they do need access to a dependency.
+func (app *Application) ParseId(p httprouter.Params) (int64, error) {
+	num := p.ByName(ID)
+	id, err := strconv.ParseInt(num, 10, 64)
+	if err != nil || id < 1 {
+		return -1, errors.New("invalid id parameter from route parameters") }
+	return id, nil
 }

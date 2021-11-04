@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 	"time"
-	"yamda_go/internal/config"
+	"yamda_go/internal"
 )
 
 func main() {
@@ -19,12 +19,10 @@ func main() {
 		config: cfg,
 		log: logger,
 	}
-	mux := http.NewServeMux()
-	mux.HandleFunc("/v1/healthcheck", app.HealthCheckHandler)
 
 	srv := &http.Server{
 		Addr: fmt.Sprintf("%s:%s", app.config.Host, app.config.Port),
-		Handler: mux,
+		Handler: app.routes(),
 		IdleTimeout: time.Minute,
 		ReadTimeout: 10 * time.Second,
 		WriteTimeout: 30 * time.Second,

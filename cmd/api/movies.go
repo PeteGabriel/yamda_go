@@ -14,9 +14,15 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, _ *http.Reques
 func (app *Application) GetMovieHandler(w http.ResponseWriter, _ *http.Request, p httprouter.Params) {
 	num, err := app.ParseId(p)
 	if err != nil {
-		app.log.Println(err)
-		//TODO add json error response
-		w.WriteHeader(http.StatusBadRequest)
+		problem := envelope{
+			"error" : models.ErrorProblem{
+				Title:  "error trying to parse id from route:",
+				Status: http.StatusBadRequest,
+				Detail: err.Error(),
+			},
+		}
+		app.log.Println(problem)
+		app.writeJSON(w, http.StatusBadRequest, problem, nil)
 		return
 	}
 	app.log.Println("get movie with id", num)

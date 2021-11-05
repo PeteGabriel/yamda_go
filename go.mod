@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/julienschmidt/httprouter v1.3.0
+	github.com/matryer/is v1.4.0
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/viper v1.9.0
 )

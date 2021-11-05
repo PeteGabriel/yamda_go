@@ -32,7 +32,7 @@ type Application struct {
 //But in general, I suggest setting up all your application-specific handlers
 //and helpers so that they are methods on application.
 //It helps maintain consistency in your code structure,
-//and also future-proofs your code for when those handlers and helpers change later,
+//and also future-proofs the code for when those handlers and helpers change later,
 //and they do need access to a dependency.
 func (app *Application) ParseId(p httprouter.Params) (int64, error) {
 	num := p.ByName(ID)
@@ -42,7 +42,7 @@ func (app *Application) ParseId(p httprouter.Params) (int64, error) {
 	return id, nil
 }
 
-//envelope type. Allows to insert types inside and self-document them in JSON responses.
+//envelope type. Allow inserting types and self-document them in JSON responses.
 type envelope map[string]interface{}
 
 

@@ -16,14 +16,15 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 		Runtime int32 `json:"runtime"`
 		Genres []string `json:"genres"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields() //do not accept unknown fields in input
+	if err := dec.Decode(&input); err != nil {
 		problem :=models.ErrorProblem{
 			Title:  "input data not valid",
 			Status: http.StatusBadRequest,
 			Detail: "input data could not be decoded into expected structure",
 		}
-
-		app.log.Println(problem)
+		app.log.Println("CreateMovieHandler:", err.Error())
 		if err = app.writeError(w, http.StatusBadRequest, problem, nil); err != nil {
 			app.log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -39,8 +40,7 @@ func (app *Application) GetMovieHandler(w http.ResponseWriter, _ *http.Request, 
 			Status: http.StatusBadRequest,
 			Detail: err.Error(),
 		}
-
-		app.log.Println(problem)
+		app.log.Println(err)
 		if err = app.writeError(w, http.StatusBadRequest, problem, nil); err != nil {
 			app.log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)

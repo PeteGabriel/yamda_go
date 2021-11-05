@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"yamda_go/internal/config"
 )
@@ -27,7 +28,7 @@ func setupTestCase(t *testing.T) func(t *testing.T) {
 	}
 }
 
-func TestApplication_CreateMovieHandler_BadInput(t *testing.T) {
+func TestApplication_CreateMovieHandler_NoInputReceived(t *testing.T) {
 	is := is2.New(t)
 
 	teardown := setupTestCase(t)
@@ -45,6 +46,67 @@ func TestApplication_CreateMovieHandler_BadInput(t *testing.T) {
 	expectedBody := `{"title":"input data not valid","status":400,"detail":"input data could not be decoded into expected structure"}`
 	is.Equal(expectedBody, string(body))
 }
+
+func TestApplication_CreateMovieHandler_InputContainsUnknownFields(t *testing.T) {
+	is := is2.New(t)
+
+	teardown := setupTestCase(t)
+	defer teardown(t)
+
+	content := `{"title": "Moana", "rating":"PG"}`//rating field is unknown to our api
+	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
+	w := httptest.NewRecorder()
+	app.CreateMovieHandler(w, req, nil)
+
+	resp := w.Result()
+	body, _ := io.ReadAll(resp.Body)
+
+	is.Equal(http.StatusBadRequest, resp.StatusCode)
+	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
+	expectedBody := `{"title":"input data not valid","status":400,"detail":"input data could not be decoded into expected structure"}`
+	is.Equal(expectedBody, string(body))
+}
+
+func TestApplication_CreateMovieHandler_InputContainsMultipleMovies(t *testing.T) {
+	is := is2.New(t)
+
+	teardown := setupTestCase(t)
+	defer teardown(t)
+
+	content := `{"title": "Moana"}{"title": "Top Gun"}`//rating field is unknown to our api
+	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
+	w := httptest.NewRecorder()
+	app.CreateMovieHandler(w, req, nil)
+
+	resp := w.Result()
+	body, _ := io.ReadAll(resp.Body)
+
+	is.Equal(http.StatusBadRequest, resp.StatusCode)
+	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
+	expectedBody := `{"title":"input data not valid","status":400,"detail":"input data contains unknown fields"}`
+	is.Equal(expectedBody, string(body))
+}
+
+func TestApplication_CreateMovieHandler_InputContainsGarbageContent(t *testing.T) {
+	is := is2.New(t)
+
+	teardown := setupTestCase(t)
+	defer teardown(t)
+
+	content := `{"title": "Moana", "rating":"PG"} :-))`//rating field is unknown to our api
+	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
+	w := httptest.NewRecorder()
+	app.CreateMovieHandler(w, req, nil)
+
+	resp := w.Result()
+	body, _ := io.ReadAll(resp.Body)
+
+	is.Equal(http.StatusBadRequest, resp.StatusCode)
+	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
+	expectedBody := `{"title":"input data not valid","status":400,"detail":"input data contains unknown fields"}`
+	is.Equal(expectedBody, string(body))
+}
+
 
 func TestApplication_GetMovieHandler_Ok(t *testing.T) {
 	is := is2.New(t)

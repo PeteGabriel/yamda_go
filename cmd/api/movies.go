@@ -17,15 +17,14 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 		Genres []string `json:"genres"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		problem := envelope{
-			"error" : models.ErrorProblem{
-				Title:  "input data not valid",
-				Status: http.StatusBadRequest,
-				Detail: "input data could not be decoded into expected structure",
-			},
+		problem :=models.ErrorProblem{
+			Title:  "input data not valid",
+			Status: http.StatusBadRequest,
+			Detail: "input data could not be decoded into expected structure",
 		}
+
 		app.log.Println(problem)
-		if err = app.writeJSON(w, http.StatusBadRequest, problem, nil); err != nil {
+		if err = app.writeError(w, http.StatusBadRequest, problem, nil); err != nil {
 			app.log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -35,15 +34,14 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 func (app *Application) GetMovieHandler(w http.ResponseWriter, _ *http.Request, p httprouter.Params) {
 	num, err := app.ParseId(p)
 	if err != nil {
-		problem := envelope{
-			"error" : models.ErrorProblem{
-				Title:  "error trying to parse id from route:",
-				Status: http.StatusBadRequest,
-				Detail: err.Error(),
-			},
+		problem := models.ErrorProblem{
+			Title:  "error trying to parse id from route:",
+			Status: http.StatusBadRequest,
+			Detail: err.Error(),
 		}
+
 		app.log.Println(problem)
-		if err = app.writeJSON(w, http.StatusBadRequest, problem, nil); err != nil {
+		if err = app.writeError(w, http.StatusBadRequest, problem, nil); err != nil {
 			app.log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}

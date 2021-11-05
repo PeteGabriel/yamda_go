@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"yamda_go/internal/config"
+	"yamda_go/internal/models"
 )
 
 //TODO generate this automatically at build time
@@ -45,6 +46,25 @@ func (app *Application) ParseId(p httprouter.Params) (int64, error) {
 //envelope type. Allow inserting types and self-document them in JSON responses.
 type envelope map[string]interface{}
 
+//Helper method for sending JSON responses in case of error. This takes the destination
+// http.ResponseWriter, the HTTP status code to send, the data to encode to JSON, and a
+// header map containing any additional HTTP headers we want to include in the response.
+//By default, the header "Content-Type" is set to "application/problem+json".
+func (app *Application) writeError(w http.ResponseWriter, status int, data models.ErrorProblem, headers http.Header) error {
+	resp, err := json.Marshal(data)
+	if err != nil {
+		app.log.Println(err)
+		return errors.Wrap(err, "an error happened at the server level")
+	}
+	//apply all values to respective header keys
+	for key, value := range headers {
+		w.Header()[key] = value
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(status)//status must be the last write
+	w.Write(resp)
+	return nil
+}
 
 //Helper method for sending JSON responses. This takes the destination
 // http.ResponseWriter, the HTTP status code to send, the data to encode to JSON, and a

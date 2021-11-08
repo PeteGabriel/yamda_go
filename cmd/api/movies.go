@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"time"
@@ -16,13 +15,11 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 		Runtime int32 `json:"runtime"`
 		Genres []string `json:"genres"`
 	}
-	dec := json.NewDecoder(r.Body)
-	dec.DisallowUnknownFields() //do not accept unknown fields in input
-	if err := dec.Decode(&input); err != nil {
+	if err := app.readJSON(w, r, &input); err != nil {
 		problem :=models.ErrorProblem{
 			Title:  "input data not valid",
 			Status: http.StatusBadRequest,
-			Detail: "input data could not be decoded into expected structure",
+			Detail: err.Error(),
 		}
 		app.log.Println("CreateMovieHandler:", err.Error())
 		if err = app.writeError(w, http.StatusBadRequest, problem, nil); err != nil {

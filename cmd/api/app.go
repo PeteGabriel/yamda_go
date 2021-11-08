@@ -2,28 +2,31 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/julienschmidt/httprouter"
-	"github.com/pkg/errors"
+	"errors"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"yamda_go/internal/config"
 	"yamda_go/internal/models"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 //TODO generate this automatically at build time
 const (
 	version = "0.0.1"
-	ID = "id"
+	ID      = "id"
 )
 
 //Application type contains all dependencies for the top layer of
 //the API.
 type Application struct {
-	log *log.Logger
+	log    *log.Logger
 	config *config.Settings
 }
-
 
 //ParseId parses the parameter id present in a given
 //route params sent via parameters to this function.
@@ -39,7 +42,8 @@ func (app *Application) ParseId(p httprouter.Params) (int64, error) {
 	num := p.ByName(ID)
 	id, err := strconv.ParseInt(num, 10, 64)
 	if err != nil || id < 1 {
-		return -1, errors.New("invalid id parameter from route parameters") }
+		return -1, errors.New("invalid id parameter from route parameters")
+	}
 	return id, nil
 }
 
@@ -54,14 +58,14 @@ func (app *Application) writeError(w http.ResponseWriter, status int, data model
 	resp, err := json.Marshal(data)
 	if err != nil {
 		app.log.Println(err)
-		return errors.Wrap(err, "an error happened at the server level")
+		return errors.New("an error happened at the server level")
 	}
 	//apply all values to respective header keys
 	for key, value := range headers {
 		w.Header()[key] = value
 	}
 	w.Header().Set("Content-Type", "application/problem+json")
-	w.WriteHeader(status)//status must be the last write
+	w.WriteHeader(status) //status must be the last write
 	w.Write(resp)
 	return nil
 }
@@ -74,14 +78,66 @@ func (app *Application) writeJSON(w http.ResponseWriter, status int, data envelo
 	resp, err := json.Marshal(data)
 	if err != nil {
 		app.log.Println(err)
-		return errors.Wrap(err, "an error happened at the server level")
+		return errors.New("an error happened at the server level")
 	}
 	//apply all values to respective header keys
 	for key, value := range headers {
 		w.Header()[key] = value
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)//status must be the last write
+	w.WriteHeader(status) //status must be the last write
 	w.Write(resp)
+	return nil
+}
+
+func (app *Application) readJSON(w http.ResponseWriter, r *http.Request, dst interface{}) error {
+	//limit size of request body to 1MB
+	maxBytes := 1_048_576
+	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
+
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields() //do not accept unknown fields in input
+	if err := dec.Decode(&dst); err != nil {
+		var syntaxError *json.SyntaxError
+		var unmarshalTypeError *json.UnmarshalTypeError
+		var invalidUnmarshalError *json.InvalidUnmarshalError
+		switch {
+		case errors.As(err, &syntaxError):
+			return fmt.Errorf("body contains badly-formed JSON (at character %d)", syntaxError.Offset)
+		case errors.Is(err, io.ErrUnexpectedEOF):
+			return errors.New("body contains badly-formed JSON")
+		case errors.As(err, &unmarshalTypeError):
+			if unmarshalTypeError.Field != "" {
+				return fmt.Errorf("body contains incorrect JSON type for field %q", unmarshalTypeError.Field)
+			}
+			return fmt.Errorf("body contains incorrect JSON type (at character %d)", unmarshalTypeError.Offset)
+		case errors.Is(err, io.EOF):
+			return errors.New("body must not be empty")
+		// If the JSON contains a field which cannot be mapped to the target destination
+		// then Decode() will now return an error message in the format "json: unknown
+		// field "<name>"". We check for this, extract the field name from the error,
+		// and interpolate it into our custom error message.
+		case strings.HasPrefix(err.Error(), "json: unknown field "):
+			fieldName := strings.TrimPrefix(err.Error(), "json: unknown field ")
+			return fmt.Errorf("body contains unknown key %s", fieldName)
+		// If the request body exceeds 1MB in size the decode will now fail with the
+		// error "http: request body too large".
+		case err.Error() == "http: request body too large":
+			return fmt.Errorf("body must not be larger than %d bytes", maxBytes)
+		case errors.As(err, &invalidUnmarshalError):
+			panic(err)
+		default:
+			return err
+		}
+	}
+
+	// Call Decode() again, using a pointer to an empty anonymous struct as the
+	// destination. If the request body only contained a single JSON value this will
+	// return an io.EOF error. So if we get anything else, we know that there is
+	// additional data in the request body and we return our own custom error message.
+	err := dec.Decode(&struct{}{})
+	if err != io.EOF {
+			return errors.New("body must only contain a single JSON value")
+	}
 	return nil
 }

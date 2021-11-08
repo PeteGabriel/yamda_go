@@ -1,10 +1,12 @@
 package main
 
 import (
-	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"time"
 	"yamda_go/internal/models"
+	"yamda_go/internal/validator"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -29,10 +31,35 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if err := app.writeJSON(w, http.StatusCreated, envelope{}, nil); err != nil {
-		app.log.Println(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	//validate movie contents
+	v := validator.New()
+	// Copy the values from the input struct to a new Movie struct.
+	movie := &models.Movie{
+		Title:   input.Title,
+		Year:    input.Year,
+		Runtime: input.Runtime,
+		Genres:  input.Genres,
 	}
+	models.ValidateMovie(v, movie)
+	if v.IsValid() {
+		if err := app.writeJSON(w, http.StatusCreated, envelope{}, nil); err != nil {
+			app.log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}else {
+		problem :=models.ErrorProblem{
+			Title:  "input data not valid",
+			Status: http.StatusUnprocessableEntity,
+			Detail: "content of movie entity is not valid",
+			Errors: v.Errors,
+		}
+		app.log.Println("CreateMovieHandler:", problem)
+		if err := app.writeError(w, http.StatusUnprocessableEntity, problem, nil); err != nil {
+			app.log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
 }
 
 func (app *Application) GetMovieHandler(w http.ResponseWriter, _ *http.Request, p httprouter.Params) {

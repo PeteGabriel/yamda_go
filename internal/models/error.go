@@ -8,4 +8,5 @@ type ErrorProblem struct {
 	Status   int    `json:"status"`
 	Detail   string `json:"detail"`
 	Instance string `json:"instance,omitempty"`
+	Errors   map[string]string `json:"errors,omitempty"`
 }

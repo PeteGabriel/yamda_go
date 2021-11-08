@@ -129,26 +129,6 @@ func TestApplication_CreateMovieHandler_InputNotValidJSON(t *testing.T) {
 	is.Equal(expectedBody, string(body))
 }
 
-func TestApplication_CreateMovieHandler_Created(t *testing.T) {
-	is := is2.New(t)
-
-	teardown := setupTestCase(t)
-	defer teardown(t)
-
-
-	content := `{"title": "Moana", "runtime": "107 mins"}`
-	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(string(content)))
-	w := httptest.NewRecorder()
-	app.CreateMovieHandler(w, req, nil)
-
-	resp := w.Result()
-	//body, _ := io.ReadAll(resp.Body)
-
-	is.Equal(http.StatusCreated, resp.StatusCode)
-	is.Equal("application/json", resp.Header.Get("Content-Type"))
-	//TODO is.Equal("", string(body))
-}
-
 func TestApplication_CreateMovieHandler_TitleIsEmptyOrLongerThan500Bytes(t *testing.T) {
 	is := is2.New(t)
 
@@ -156,8 +136,8 @@ func TestApplication_CreateMovieHandler_TitleIsEmptyOrLongerThan500Bytes(t *test
 	defer teardown(t)
 
 
-	content := `{"title": " ", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama","historical"]}`
-	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(string(content)))
+	content := `{"title": " ", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama"]}`
+	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
 	app.CreateMovieHandler(w, req, nil)
 
@@ -166,17 +146,17 @@ func TestApplication_CreateMovieHandler_TitleIsEmptyOrLongerThan500Bytes(t *test
 
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
-	expectedBody := `{"title":"input data not valid","status":400,"detail":"movie title must be non-empty"}`
+	expectedBody := `{"title":"input data not valid","status":422,"detail":"content of movie entity is not valid","errors":{"title":"must not be empty or more than 500 bytes long"}}`
 	is.Equal(expectedBody, string(body))
 
-	content = `{"title": "tbXgdREwqSjfnDiDHUDadZPWHXPxFrzquhjpNLBjMXBnydPiwfyuMhBTdaFRHJGDVLFkwCTvTGRcEFqNtkfhUTiAnYzQRXaRtaRrGKaJSbncPpjDAZBWtcCkWzZvJDaMgRzYBQNSpGShDhLmfUcrCRMvjpxZRSNWtqUyVHuQXVwvXKdbtzkYaWGiLgeBxNYwZgMjLtuMWbedRAvjYSWNvtzBzDAvShPWixdaFvWiMmhpVzbmZQQWEJJRaxwDBvYMDSKDWqjreFQfEBUaKrmBufecwWmEcjWmzBtKckqRddWMKacRHdNMutCBtjjTZbkbbhGvpFetxpDXZcHQBBHiWVZEHGDawmJwAntwQHtErEFvbANcrbUJhanuykDhYktjrdkuFRmQVdPFnWcRmrbKpkLtaNCcubDEuyRQYarRyjSQXWFBXbQELUPJRLBMgmNdwUdcmAXaTkwiyzdAdURrhcSCScUCZNzHGTwjWmwSpNAvRAAkuLfb", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama","historical"]}`
-	req = httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(string(content)))
+	content = `{"title": "tbXgdREwqSjfnDiDHUDadZPWHXPxFrzquhjpNLBjMXBnydPiwfXPxFrzquhjpNLBjMXBnydPiwfXPxFrzquhjpNLBjMXBnydPiwfXPxFrzquhjpNLBjMXBnydPiwfyuMhBTdaFRHJGDVLFkwCTvTGRcEFqNtkfhUTiAnYzQRXaRtaRrGKaJSbncPpjDAZBWtcCkWzZvJDaMgRzYBQNSpGShDhLmfUcrCRMvjpxZRSNWtqUyVHuQXVwvXKdbtzkYaWGiLgeBxNYwZgMjLtuMWbedRAvjYSWNvtzBzDAvShPWixdaFvWiMmhpVzbmZQQWEJJRaxwDBvYMDSKDWqjreFQfEBUaKrmBufecwWmEcjWmzBtKckqRddWMKacRHdNMutCBtjjTZbkbbhGvpFetxpDXZcHQBBHiWVZEHGDawmJwAntwQHtErEFvbANcrbUJhanuykDhYktjrdkuFRmQVdPFnWcRmrbKpkLtaNCcubDEuyRQYarRyjSQXWFBXbQELUPJRLBMgmNdwUdcmAXaTkwiyzdAdURrhcSCScUCZNzHGTwjWmwSpNAvRAAkuLfb", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama"]}`
+	req = httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w = httptest.NewRecorder()
 	app.CreateMovieHandler(w, req, nil)
 	resp = w.Result()
 	body, _ = io.ReadAll(resp.Body)
 
-	expectedBody = `{"title":"input data not valid","status":422,"detail":"movie title exceeds lenght."}`
+	expectedBody = `{"title":"input data not valid","status":422,"detail":"content of movie entity is not valid","errors":{"title":"must not be empty or more than 500 bytes long"}}`
 	is.Equal(expectedBody, string(body))
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
@@ -187,7 +167,7 @@ func TestApplication_CreateMovieHandler_YearIsEmptyOrHasInvalidRange(t *testing.
 	teardown := setupTestCase(t)
 	defer teardown(t)
 
-	content := `{"title": "Casablanca", "runtime": "125 mins", "year": -1, "genres": ["historical","drama","historical"]}`
+	content := `{"title": "Casablanca", "runtime": "125 mins", "year": 1800, "genres": ["historical","drama"]}`
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(string(content)))
 	w := httptest.NewRecorder()
 	app.CreateMovieHandler(w, req, nil)
@@ -197,11 +177,11 @@ func TestApplication_CreateMovieHandler_YearIsEmptyOrHasInvalidRange(t *testing.
 
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
-	expectedBody := `{"title":"input data not valid","status":422,"detail":"movie year must be non-empty"}`
+	expectedBody := `{"title":"input data not valid","status":422,"detail":"content of movie entity is not valid","errors":{"year":"must be greater than 1888"}}`
 	is.Equal(expectedBody, string(body))
 
 
-	content = `{"title": "Casablanca", "runtime": "125 mins", "genres": ["historical","drama","historical"], "year": 1886}`
+	content = `{"title": "Casablanca", "runtime": "125 mins", "genres": ["historical","drama"], "year": 2030}`
 	req = httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(string(content)))
 	w = httptest.NewRecorder()
 	app.CreateMovieHandler(w, req, nil)
@@ -209,16 +189,16 @@ func TestApplication_CreateMovieHandler_YearIsEmptyOrHasInvalidRange(t *testing.
 	body, _ = io.ReadAll(resp.Body)
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
-	expectedBody = `{"title":"input data not valid","status":422,"detail":"movie year must be inside range 1888 and current year"}`
+	expectedBody = `{"title":"input data not valid","status":422,"detail":"content of movie entity is not valid","errors":{"year":"must not be in the future"}}`
 	is.Equal(expectedBody, string(body))
 }
 
-func TestApplication_CreateMovieHandler_RuntimeIsEmptyOrANegativeInteger(t *testing.T) {
+func TestApplication_CreateMovieHandler_RuntimeIsNegativeInteger(t *testing.T) {
 	is := is2.New(t)
 	teardown := setupTestCase(t)
 	defer teardown(t)
 
-	content := `{"title": "Casablanca", "runtime": "", "year": 2020, "genres": ["historical","drama","historical"]}`
+	content := `{"title": "Casablanca", "runtime": "-1 mins", "year": 2020, "genres": ["historical","drama"]}`
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(string(content)))
 	w := httptest.NewRecorder()
 	app.CreateMovieHandler(w, req, nil)
@@ -228,20 +208,7 @@ func TestApplication_CreateMovieHandler_RuntimeIsEmptyOrANegativeInteger(t *test
 
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
-	expectedBody := `{"title":"input data not valid","status":422,"detail":"movie runtime must be non-empty"}`
-	is.Equal(expectedBody, string(body))
-
-	content = `{"runtime": "-26 mins", "title": "Casablanca", "year": 2020, "genres": ["historical","drama","historical"]}`
-	req = httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(string(content)))
-	w = httptest.NewRecorder()
-	app.CreateMovieHandler(w, req, nil)
-
-	resp = w.Result()
-	body, _ = io.ReadAll(resp.Body)
-
-	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
-	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
-	expectedBody = `{"title":"input data not valid","status":422,"detail":"movie runtime must be non-negative"}`
+	expectedBody := `{"title":"input data not valid","status":422,"detail":"content of movie entity is not valid","errors":{"runtime":"must be a positive integer"}}`
 	is.Equal(expectedBody, string(body))
 }
 
@@ -260,7 +227,7 @@ func TestApplication_CreateMovieHandler_GenresIsEmpty(t *testing.T) {
 
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
-	expectedBody := `{"title":"input data not valid","status":422,"detail":"movie genres must be non-empty"}`
+	expectedBody := `{"title":"input data not valid","status":422,"detail":"content of movie entity is not valid","errors":{"genres":"must contain at least 1 genre"}}`
 	is.Equal(expectedBody, string(body))
 }
 
@@ -279,7 +246,7 @@ func TestApplication_CreateMovieHandler_GenresMustNotExceed5(t *testing.T) {
 
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
-	expectedBody := `{"title":"input data not valid","status":422,"detail":"a movie must have between one and five (unique) genres"}`
+	expectedBody := `{"title":"input data not valid","status":422,"detail":"content of movie entity is not valid","errors":{"genres":"must not contain more than 5 genres"}}`
 	is.Equal(expectedBody, string(body))
 }
 
@@ -298,7 +265,7 @@ func TestApplication_CreateMovieHandler_GenresMustBeUnique(t *testing.T) {
 
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
-	expectedBody := `{"title":"input data not valid","status":422,"detail":"movie genres must be unique"}`
+	expectedBody := `{"title":"input data not valid","status":422,"detail":"content of movie entity is not valid","errors":{"genres":"must not contain duplicate values"}}`
 	is.Equal(expectedBody, string(body))
 }
 

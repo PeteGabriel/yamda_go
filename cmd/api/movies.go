@@ -12,7 +12,7 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 	var input struct {
 		Title string `json:"title"`
 		Year int32 `json:"year"`
-		Runtime int32 `json:"runtime"`
+		Runtime models.Runtime `json:"runtime"`
 		Genres []string `json:"genres"`
 	}
 	if err := app.readJSON(w, r, &input); err != nil {
@@ -26,6 +26,12 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 			app.log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
+		return
+	}
+
+	if err := app.writeJSON(w, http.StatusCreated, envelope{}, nil); err != nil {
+		app.log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 

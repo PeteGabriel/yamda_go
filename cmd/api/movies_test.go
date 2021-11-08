@@ -108,7 +108,6 @@ func TestApplication_CreateMovieHandler_InputContainsGarbageContent(t *testing.T
 	is.Equal(expectedBody, string(body))
 }
 
-
 func TestApplication_CreateMovieHandler_InputNotValidJSON(t *testing.T) {
 	is := is2.New(t)
 
@@ -128,6 +127,26 @@ func TestApplication_CreateMovieHandler_InputNotValidJSON(t *testing.T) {
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
 	expectedBody := `{"title":"input data not valid","status":400,"detail":"body contains badly-formed JSON (at character 1)"}`
 	is.Equal(expectedBody, string(body))
+}
+
+func TestApplication_CreateMovieHandler_Created(t *testing.T) {
+	is := is2.New(t)
+
+	teardown := setupTestCase(t)
+	defer teardown(t)
+
+
+	content := `{"title": "Moana", "runtime": "107 mins"}`
+	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(string(content)))
+	w := httptest.NewRecorder()
+	app.CreateMovieHandler(w, req, nil)
+
+	resp := w.Result()
+	//body, _ := io.ReadAll(resp.Body)
+
+	is.Equal(http.StatusCreated, resp.StatusCode)
+	is.Equal("application/json", resp.Header.Get("Content-Type"))
+	//TODO is.Equal("", string(body))
 }
 
 func TestApplication_GetMovieHandler_Ok(t *testing.T) {

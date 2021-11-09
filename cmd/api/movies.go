@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	"time"
 	"yamda_go/internal/models"
 	"yamda_go/internal/validator"
 
@@ -40,25 +39,26 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 		Runtime: input.Runtime,
 		Genres:  input.Genres,
 	}
-	models.ValidateMovie(v, movie)
+	movie.Validate(v)
 	if v.IsValid() {
-		if err := app.writeJSON(w, http.StatusCreated, envelope{}, nil); err != nil {
+		if err := app.writeJSON(w, http.StatusCreated, envelope{"movie": movie}, nil); err != nil {
 			app.log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-	}else {
-		problem :=models.ErrorProblem{
-			Title:  "input data not valid",
-			Status: http.StatusUnprocessableEntity,
-			Detail: "content of movie entity is not valid",
-			Errors: v.Errors,
-		}
-		app.log.Println("CreateMovieHandler:", problem)
-		if err := app.writeError(w, http.StatusUnprocessableEntity, problem, nil); err != nil {
-			app.log.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+		return
 	}
+	problem :=models.ErrorProblem{
+		Title:  "input data not valid",
+		Status: http.StatusUnprocessableEntity,
+		Detail: "content of movie entity is not valid",
+		Errors: v.Errors,
+	}
+	app.log.Println("CreateMovieHandler:", problem)
+	if err := app.writeError(w, http.StatusUnprocessableEntity, problem, nil); err != nil {
+		app.log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
 
 }
 
@@ -77,15 +77,20 @@ func (app *Application) GetMovieHandler(w http.ResponseWriter, _ *http.Request, 
 		}
 		return
 	}
-	app.log.Println("get movie with id", num)
-	movie := models.Movie{
-		ID:        1,
-		Title:     "Casablanca",
-		Runtime:   0,
-		Genres:    []string{"drama", "war", "romance"},
-		Year:      0,
-		Version:   1,
-		CreatedAt: time.Time{},
+
+	movie, err := app.movieSvc.GetMovie(num)
+	if err != nil {
+		problem := models.ErrorProblem{
+			Title:  "movie not found",
+			Status: http.StatusNotFound,
+			Detail: err.Error(),
+		}
+		app.log.Println(err)
+		if err = app.writeError(w, http.StatusBadRequest, problem, nil); err != nil {
+			app.log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
 	}
 	if err := app.writeJSON(w, http.StatusOK, envelope{"movie": movie}, nil); err != nil {
 		app.log.Println(err)

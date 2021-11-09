@@ -8,9 +8,14 @@ import (
 //Settings represents the configuration that we can provide
 //from the outside in order to run the application in different ways.
 type Settings struct {
-	Host string `mapstructure:"HOST"`
-	Port string `mapstructure:"PORT"`
-	Env  string `mapstructure:"ENV"`
+	Host                string `mapstructure:"HOST"`
+	Port                string `mapstructure:"PORT"`
+	Env                 string `mapstructure:"ENV"`
+	DriverName          string `mapstructure:"SQL_DRIVER_NAME"`
+	ConnString          string `mapstructure:"SQL_CONN_STRING"`
+	ConnMaxLifetime     int64 `mapstructure:"SQL_CONN_MAX_LIFETIME"`
+	ConnMaxOpen         int `mapstructure:"SQL_CONN_MAX_OPEN_CONN"`
+	ConnMaxIdle         int `mapstructure:"SQL_CONN_MAX_IDLE_CONN"`
 }
 
 func New(envPath string) (*Settings, error) {

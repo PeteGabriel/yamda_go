@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 	"yamda_go/internal/config"
+	"yamda_go/internal/data/provider"
+	"yamda_go/internal/services"
 
 	"github.com/julienschmidt/httprouter"
 	is2 "github.com/matryer/is"
@@ -16,12 +18,13 @@ import (
 
 var app *Application = nil
 
-func setupTestCase(t *testing.T) func(t *testing.T) {
+func setupTestCase(_ *testing.T) func(t *testing.T) {
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	cfg, _ := config.New("./debug.env")
 	app = &Application{
 		log:    logger,
 		config: cfg,
+		movieSvc: services.New(provider.New(cfg)),
 	}
 	return func(t *testing.T) {
 		//some teardown
@@ -168,7 +171,7 @@ func TestApplication_CreateMovieHandler_YearIsEmptyOrHasInvalidRange(t *testing.
 	defer teardown(t)
 
 	content := `{"title": "Casablanca", "runtime": "125 mins", "year": 1800, "genres": ["historical","drama"]}`
-	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(string(content)))
+	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
 	app.CreateMovieHandler(w, req, nil)
 
@@ -182,7 +185,7 @@ func TestApplication_CreateMovieHandler_YearIsEmptyOrHasInvalidRange(t *testing.
 
 
 	content = `{"title": "Casablanca", "runtime": "125 mins", "genres": ["historical","drama"], "year": 2030}`
-	req = httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(string(content)))
+	req = httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w = httptest.NewRecorder()
 	app.CreateMovieHandler(w, req, nil)
 	resp = w.Result()
@@ -199,7 +202,7 @@ func TestApplication_CreateMovieHandler_RuntimeIsNegativeInteger(t *testing.T) {
 	defer teardown(t)
 
 	content := `{"title": "Casablanca", "runtime": "-1 mins", "year": 2020, "genres": ["historical","drama"]}`
-	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(string(content)))
+	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
 	app.CreateMovieHandler(w, req, nil)
 
@@ -218,7 +221,7 @@ func TestApplication_CreateMovieHandler_GenresIsEmpty(t *testing.T) {
 	defer teardown(t)
 
 	content := `{"title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": []}`
-	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(string(content)))
+	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
 	app.CreateMovieHandler(w, req, nil)
 
@@ -237,7 +240,7 @@ func TestApplication_CreateMovieHandler_GenresMustNotExceed5(t *testing.T) {
 	defer teardown(t)
 
 	content := `{"title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama","spy","fiction","romance","fantasy"]}`
-	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(string(content)))
+	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
 	app.CreateMovieHandler(w, req, nil)
 
@@ -256,7 +259,7 @@ func TestApplication_CreateMovieHandler_GenresMustBeUnique(t *testing.T) {
 	defer teardown(t)
 
 	content := `{"title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama","historical"]}`
-	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(string(content)))
+	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
 	app.CreateMovieHandler(w, req, nil)
 

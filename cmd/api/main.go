@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 	"yamda_go/internal/config"
+	"yamda_go/internal/data/provider"
+	"yamda_go/internal/services"
 )
 
 func main() {
@@ -18,6 +20,7 @@ func main() {
 	app := &Application{
 		config: cfg,
 		log: logger,
+		movieSvc: services.New(provider.New(cfg)),
 	}
 
 	srv := &http.Server{

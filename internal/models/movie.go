@@ -16,8 +16,8 @@ type Movie struct {
 	CreatedAt time.Time `json:"-"`
 }
 
-//ValidateMovie uses a validator interface to validate the contents of a given movie.
-func ValidateMovie(v *validator.Validator, m *Movie) {
+//Validate uses a validator interface to validate the contents of a given movie.
+func (m *Movie) Validate(v *validator.Validator) {
 	v.Check(m.Title != "", "title", "must be provided")
 	title := strings.TrimSpace(m.Title)
 	v.Check(len(title) >= 1 && len(title) <= 500, "title", "must not be empty or more than 500 bytes long")

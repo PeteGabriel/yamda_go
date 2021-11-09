@@ -11,6 +11,7 @@ import (
 	"strings"
 	"yamda_go/internal/config"
 	"yamda_go/internal/models"
+	"yamda_go/internal/services"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -26,6 +27,7 @@ const (
 type Application struct {
 	log    *log.Logger
 	config *config.Settings
+	movieSvc services.IMovieService
 }
 
 //ParseId parses the parameter id present in a given

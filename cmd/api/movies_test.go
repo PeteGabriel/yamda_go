@@ -20,12 +20,14 @@ var app *Application = nil
 
 func setupTestCase(_ *testing.T) func(t *testing.T) {
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	cfg, _ := config.New("./debug.env")
+	cfg, _ := config.New("./../../debug.env")
 	app = &Application{
 		log:    logger,
 		config: cfg,
 		movieSvc: services.New(provider.New(cfg)),
 	}
+
+	//TODO check if data is seeded, if not do it and clean afterwards
 	return func(t *testing.T) {
 		//some teardown
 		app = nil
@@ -278,12 +280,12 @@ func TestApplication_GetMovieHandler_Ok(t *testing.T) {
 	teardown := setupTestCase(t)
 	defer teardown(t)
 
-	req := httptest.NewRequest("GET", "localhost:8081/v1/movies/7", nil)
+	req := httptest.NewRequest("GET", "localhost:8081/v1/movies/1", nil)
 	w := httptest.NewRecorder()
 	p := httprouter.Params{
 		httprouter.Param{
 			Key:   "id",
-			Value: "7",
+			Value: "1",
 		},
 	}
 	app.GetMovieHandler(w, req, p)
@@ -293,7 +295,7 @@ func TestApplication_GetMovieHandler_Ok(t *testing.T) {
 	is.Equal(http.StatusOK, resp.StatusCode)
 	is.Equal("application/json", resp.Header.Get("Content-Type"))
 
-	movie := `{"movie":{"id":1,"title":"Casablanca","genres":["drama","war","romance"],"version":1}}`
+	movie := `{"movie":{"id":1,"title":"The Last Samurai","runtime":"824637739352 mins","genres":["drama"," history"],"year":2015,"version":1}}`
 	is.Equal(movie, string(body))
 }
 

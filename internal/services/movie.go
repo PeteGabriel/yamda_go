@@ -15,7 +15,7 @@ type MovieService struct {
 }
 
 func (s *MovieService) CreateMovie(m models.Movie) (bool, error) {
-	return false, nil
+	return s.p.CreateMovie(m)
 }
 
 func (s *MovieService) GetMovie(id int64) (*models.Movie, error) {

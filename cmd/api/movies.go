@@ -41,6 +41,19 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 	}
 	movie.Validate(v)
 	if v.IsValid() {
+		//create new movie
+		if _, err := app.movieSvc.CreateMovie(*movie); err != nil {
+			problem :=models.ErrorProblem{
+				Title:  "movie not created",
+				Status: http.StatusInternalServerError,
+				Detail: err.Error(),
+			}
+			app.log.Println("CreateMovieHandler:", err.Error())
+			if err = app.writeError(w, http.StatusInternalServerError, problem, nil); err != nil {
+				app.log.Println(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+		}
 		if err := app.writeJSON(w, http.StatusCreated, envelope{"movie": movie}, nil); err != nil {
 			app.log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)

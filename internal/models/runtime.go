@@ -2,6 +2,8 @@ package models
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -32,4 +34,10 @@ func (r *Runtime) UnmarshalJSON(val []byte) error {
 	}
 	*r = Runtime(runtime)
 	return nil
+}
+
+func (r *Runtime) MarshalJSON() ([]byte, error) {
+	log.Println("MarshalJSON call")
+	cnt := fmt.Sprintf("\"%d mins\"", r)//must be a valid JSON string
+	return []byte(cnt), nil
 }

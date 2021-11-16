@@ -22,7 +22,7 @@
 
 This API tries to make use of a standardized mediatype called `application/problem+json`. You should expect this for all
 the errors in the range 400-4xx.
-```json
+```
 HTTP/1.1 401 Unauthorized
 Content-Type: application/problem+json; charset=utf-8
 Date: Wed, 07 Aug 2019 10:10:06 GMT
@@ -38,7 +38,7 @@ Date: Wed, 07 Aug 2019 10:10:06 GMT
 
 ### Retrieve a movie by ID
 
-```json
+```
  curl -i -X GET localhost:8081/v1/movies/7
 
 

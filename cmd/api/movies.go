@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"yamda_go/internal/models"
 	"yamda_go/internal/validator"
@@ -8,21 +10,25 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+const tag = "CreateMovieHandler:"
+
 func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	//how we expect data from outside
 	var input struct {
-		Title string `json:"title"`
-		Year int32 `json:"year"`
+		Title   string         `json:"title"`
+		Year    int32          `json:"year"`
 		Runtime models.Runtime `json:"runtime"`
-		Genres []string `json:"genres"`
+		Genres  []string       `json:"genres"`
 	}
-	if err := app.readJSON(w, r, &input); err != nil {
-		problem :=models.ErrorProblem{
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields() //do not accept unknown fields in input
+	if err := dec.Decode(&input); err != nil {
+		problem := models.ErrorProblem{
 			Title:  "input data not valid",
 			Status: http.StatusBadRequest,
 			Detail: err.Error(),
 		}
-		app.log.Println("CreateMovieHandler:", err.Error())
+		app.log.Println(tag, err.Error())
 		if err = app.writeError(w, http.StatusBadRequest, problem, nil); err != nil {
 			app.log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -43,12 +49,12 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 	if v.IsValid() {
 		//create new movie
 		if _, err := app.movieSvc.CreateMovie(*movie); err != nil {
-			problem :=models.ErrorProblem{
+			problem := models.ErrorProblem{
 				Title:  "movie not created",
 				Status: http.StatusInternalServerError,
 				Detail: err.Error(),
 			}
-			app.log.Println("CreateMovieHandler:", err.Error())
+			app.log.Println(tag, err.Error())
 			if err = app.writeError(w, http.StatusInternalServerError, problem, nil); err != nil {
 				app.log.Println(err)
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -60,18 +66,17 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 		}
 		return
 	}
-	problem :=models.ErrorProblem{
+	problem := models.ErrorProblem{
 		Title:  "input data not valid",
 		Status: http.StatusUnprocessableEntity,
 		Detail: "content of movie entity is not valid",
 		Errors: v.Errors,
 	}
-	app.log.Println("CreateMovieHandler:", problem)
+	app.log.Println(tag, problem)
 	if err := app.writeError(w, http.StatusUnprocessableEntity, problem, nil); err != nil {
 		app.log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-
 
 }
 
@@ -96,10 +101,10 @@ func (app *Application) GetMovieHandler(w http.ResponseWriter, _ *http.Request, 
 		problem := models.ErrorProblem{
 			Title:  "movie not found",
 			Status: http.StatusNotFound,
-			Detail: err.Error(),
+			Detail: fmt.Sprintf("movie with id %d not found", num),
 		}
 		app.log.Println(err)
-		if err = app.writeError(w, http.StatusBadRequest, problem, nil); err != nil {
+		if err = app.writeError(w, http.StatusNotFound, problem, nil); err != nil {
 			app.log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}

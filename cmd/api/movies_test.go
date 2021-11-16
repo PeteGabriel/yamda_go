@@ -22,8 +22,8 @@ func setupTestCase(_ *testing.T) func(t *testing.T) {
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	cfg, _ := config.New("./../../debug.env")
 	app = &Application{
-		log:    logger,
-		config: cfg,
+		log:      logger,
+		config:   cfg,
 		movieSvc: services.New(provider.New(cfg)),
 	}
 
@@ -119,7 +119,6 @@ func TestApplication_CreateMovieHandler_InputNotValidJSON(t *testing.T) {
 	teardown := setupTestCase(t)
 	defer teardown(t)
 
-
 	content := make([]byte, 1234)
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(string(content)))
 	w := httptest.NewRecorder()
@@ -139,7 +138,6 @@ func TestApplication_CreateMovieHandler_TitleIsEmptyOrLongerThan500Bytes(t *test
 
 	teardown := setupTestCase(t)
 	defer teardown(t)
-
 
 	content := `{"title": " ", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama"]}`
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
@@ -184,7 +182,6 @@ func TestApplication_CreateMovieHandler_YearIsEmptyOrHasInvalidRange(t *testing.
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
 	expectedBody := `{"title":"input data not valid","status":422,"detail":"content of movie entity is not valid","errors":{"year":"must be greater than 1888"}}`
 	is.Equal(expectedBody, string(body))
-
 
 	content = `{"title": "Casablanca", "runtime": "125 mins", "genres": ["historical","drama"], "year": 2030}`
 	req = httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
@@ -321,5 +318,30 @@ func TestApplication_GetMovieHandler_BadMovieId(t *testing.T) {
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
 
 	movie := `{"title":"error trying to parse id from route:","status":400,"detail":"invalid id parameter from route parameters"}`
+	is.Equal(movie, string(body))
+}
+
+func TestApplication_GetMovieHandler_MovieNotFound(t *testing.T) {
+	is := is2.New(t)
+
+	teardown := setupTestCase(t)
+	defer teardown(t)
+
+	req := httptest.NewRequest("GET", "localhost:8081/v1/movies/700", nil)
+	w := httptest.NewRecorder()
+	p := httprouter.Params{
+		httprouter.Param{
+			Key:   "id",
+			Value: "700",
+		},
+	}
+	app.GetMovieHandler(w, req, p)
+	resp := w.Result()
+	body, _ := io.ReadAll(resp.Body)
+
+	is.Equal(http.StatusNotFound, resp.StatusCode)
+	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
+
+	movie := `{"title":"movie not found","status":404,"detail":"movie with id 700 not found"}`
 	is.Equal(movie, string(body))
 }

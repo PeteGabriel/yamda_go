@@ -2,7 +2,6 @@ package provider
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -51,14 +50,14 @@ func (p *MovieProvider) GetMovie(id int64) (*models.Movie, error) {
 	tmp := struct {
 		ID      int64
 		Title   string
-		Runtime int64
+		Runtime int32
 		Genres  string
 		Year    int32
 		Version int
 	}{}
 
 	if err = stmt.QueryRow(id).Scan(&tmp.ID, &tmp.Title, &tmp.Runtime, &tmp.Genres, &tmp.Year, &tmp.Version); err != nil {
-		return nil, errors.New(fmt.Sprintf("error scanning data from DB into internal struct: %s", err))
+		return nil, fmt.Errorf("error scanning data from DB into internal struct: %s", err)
 	}
 
 	//build the movie model correctly

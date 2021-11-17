@@ -4,12 +4,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"strings"
 	"time"
 	"yamda_go/internal/config"
 	"yamda_go/internal/models"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type IMovieProvider interface {
@@ -21,7 +22,7 @@ type MovieProvider struct {
 	db *sql.DB
 }
 
-func New(set *config.Settings) IMovieProvider{
+func New(set *config.Settings) IMovieProvider {
 	db, err := sql.Open(set.DriverName, set.ConnString)
 	if err != nil {
 		log.Fatal(err)
@@ -33,7 +34,7 @@ func New(set *config.Settings) IMovieProvider{
 	db.SetConnMaxLifetime(time.Minute * time.Duration(set.ConnMaxLifetime))
 	db.SetMaxOpenConns(set.ConnMaxOpen)
 	db.SetMaxIdleConns(set.ConnMaxIdle)
-    return &MovieProvider{
+	return &MovieProvider{
 		db: db,
 	}
 }
@@ -47,12 +48,12 @@ func (p *MovieProvider) GetMovie(id int64) (*models.Movie, error) {
 	defer stmt.Close()
 
 	//use it to scan data from row
-	tmp := struct{
-		ID int64
-		Title string
-		Runtime   int64
-		Genres string
-		Year int32
+	tmp := struct {
+		ID      int64
+		Title   string
+		Runtime int64
+		Genres  string
+		Year    int32
 		Version int
 	}{}
 
@@ -68,7 +69,7 @@ func (p *MovieProvider) GetMovie(id int64) (*models.Movie, error) {
 		Genres:    strings.Split(tmp.Genres, ","),
 		Year:      tmp.Year,
 		Version:   tmp.Version,
-		CreatedAt: time.Now(),//todo change to use row field
+		CreatedAt: time.Now(), //todo change to use row field
 	}
 
 	return &m, nil

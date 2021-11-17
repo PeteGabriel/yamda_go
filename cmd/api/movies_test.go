@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -9,7 +10,8 @@ import (
 	"strings"
 	"testing"
 	"yamda_go/internal/config"
-	"yamda_go/internal/data/provider"
+	provmock "yamda_go/internal/mocks/data/provider"
+	"yamda_go/internal/models"
 	"yamda_go/internal/services"
 
 	"github.com/julienschmidt/httprouter"
@@ -18,17 +20,15 @@ import (
 
 var app *Application = nil
 
-func setupTestCase(_ *testing.T) func(t *testing.T) {
+func setupTestCase(m provmock.MovieProviderMock) func() {
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	cfg, _ := config.New("./../../debug.env")
 	app = &Application{
 		log:      logger,
 		config:   cfg,
-		movieSvc: services.New(provider.New(cfg)),
+		movieSvc: services.New(m),
 	}
-
-	//TODO check if data is seeded, if not do it and clean afterwards
-	return func(t *testing.T) {
+	return func() {
 		//some teardown
 		app = nil
 	}
@@ -37,8 +37,13 @@ func setupTestCase(_ *testing.T) func(t *testing.T) {
 func TestApplication_CreateMovieHandler_NoInputReceived(t *testing.T) {
 	is := is2.New(t)
 
-	teardown := setupTestCase(t)
-	defer teardown(t)
+	//setup mock for provider
+	mock := provmock.MovieProviderMock{}
+	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
+		return false, nil //dummy return in this case
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
 
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", nil)
 	w := httptest.NewRecorder()
@@ -56,10 +61,14 @@ func TestApplication_CreateMovieHandler_NoInputReceived(t *testing.T) {
 func TestApplication_CreateMovieHandler_InputContainsUnknownFields(t *testing.T) {
 	is := is2.New(t)
 
-	teardown := setupTestCase(t)
-	defer teardown(t)
+	mock := provmock.MovieProviderMock{}
+	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
+		return false, nil //dummy return in this case
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
 
-	content := `{"title": "Moana", "rating":"PG"}` //rating field is unknown to our api
+	content := `{"title": "Moana", "runtime": "125 mins", "year": 2020, "genres":["drama"], "rating":"PG"}` //rating field is unknown to our api
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
 	app.CreateMovieHandler(w, req, nil)
@@ -76,8 +85,12 @@ func TestApplication_CreateMovieHandler_InputContainsUnknownFields(t *testing.T)
 func TestApplication_CreateMovieHandler_InputContainsMultipleMovies(t *testing.T) {
 	is := is2.New(t)
 
-	teardown := setupTestCase(t)
-	defer teardown(t)
+	mock := provmock.MovieProviderMock{}
+	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
+		return false, nil //dummy return in this case
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
 
 	content := `{"title": "Moana"}{"title": "Top Gun"}` //two movies
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
@@ -96,8 +109,12 @@ func TestApplication_CreateMovieHandler_InputContainsMultipleMovies(t *testing.T
 func TestApplication_CreateMovieHandler_InputContainsGarbageContent(t *testing.T) {
 	is := is2.New(t)
 
-	teardown := setupTestCase(t)
-	defer teardown(t)
+	mock := provmock.MovieProviderMock{}
+	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
+		return false, nil //dummy return in this case
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
 
 	content := `{"title": "Moana", "runtime": "125 mins", "year": 2020, "genres":["drama"]} :-))`
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
@@ -116,8 +133,12 @@ func TestApplication_CreateMovieHandler_InputContainsGarbageContent(t *testing.T
 func TestApplication_CreateMovieHandler_InputNotValidJSON(t *testing.T) {
 	is := is2.New(t)
 
-	teardown := setupTestCase(t)
-	defer teardown(t)
+	mock := provmock.MovieProviderMock{}
+	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
+		return false, nil //dummy return in this case
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
 
 	content := make([]byte, 1234)
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(string(content)))
@@ -136,8 +157,12 @@ func TestApplication_CreateMovieHandler_InputNotValidJSON(t *testing.T) {
 func TestApplication_CreateMovieHandler_TitleIsEmptyOrLongerThan500Bytes(t *testing.T) {
 	is := is2.New(t)
 
-	teardown := setupTestCase(t)
-	defer teardown(t)
+	mock := provmock.MovieProviderMock{}
+	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
+		return false, nil //dummy return in this case
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
 
 	content := `{"title": " ", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama"]}`
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
@@ -167,8 +192,12 @@ func TestApplication_CreateMovieHandler_TitleIsEmptyOrLongerThan500Bytes(t *test
 
 func TestApplication_CreateMovieHandler_YearIsEmptyOrHasInvalidRange(t *testing.T) {
 	is := is2.New(t)
-	teardown := setupTestCase(t)
-	defer teardown(t)
+	mock := provmock.MovieProviderMock{}
+	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
+		return false, nil //dummy return in this case
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
 
 	content := `{"title": "Casablanca", "runtime": "125 mins", "year": 1800, "genres": ["historical","drama"]}`
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
@@ -197,8 +226,12 @@ func TestApplication_CreateMovieHandler_YearIsEmptyOrHasInvalidRange(t *testing.
 
 func TestApplication_CreateMovieHandler_RuntimeIsNegativeInteger(t *testing.T) {
 	is := is2.New(t)
-	teardown := setupTestCase(t)
-	defer teardown(t)
+	mock := provmock.MovieProviderMock{}
+	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
+		return false, nil //dummy return in this case
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
 
 	content := `{"title": "Casablanca", "runtime": "-1 mins", "year": 2020, "genres": ["historical","drama"]}`
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
@@ -216,8 +249,12 @@ func TestApplication_CreateMovieHandler_RuntimeIsNegativeInteger(t *testing.T) {
 
 func TestApplication_CreateMovieHandler_GenresIsEmpty(t *testing.T) {
 	is := is2.New(t)
-	teardown := setupTestCase(t)
-	defer teardown(t)
+	mock := provmock.MovieProviderMock{}
+	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
+		return false, nil //dummy return in this case
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
 
 	content := `{"title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": []}`
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
@@ -235,8 +272,12 @@ func TestApplication_CreateMovieHandler_GenresIsEmpty(t *testing.T) {
 
 func TestApplication_CreateMovieHandler_GenresMustNotExceed5(t *testing.T) {
 	is := is2.New(t)
-	teardown := setupTestCase(t)
-	defer teardown(t)
+	mock := provmock.MovieProviderMock{}
+	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
+		return false, nil //dummy return in this case
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
 
 	content := `{"title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama","spy","fiction","romance","fantasy"]}`
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
@@ -254,8 +295,12 @@ func TestApplication_CreateMovieHandler_GenresMustNotExceed5(t *testing.T) {
 
 func TestApplication_CreateMovieHandler_GenresMustBeUnique(t *testing.T) {
 	is := is2.New(t)
-	teardown := setupTestCase(t)
-	defer teardown(t)
+	mock := provmock.MovieProviderMock{}
+	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
+		return false, nil //dummy return in this case
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
 
 	content := `{"title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama","historical"]}`
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
@@ -274,8 +319,19 @@ func TestApplication_CreateMovieHandler_GenresMustBeUnique(t *testing.T) {
 func TestApplication_GetMovieHandler_Ok(t *testing.T) {
 	is := is2.New(t)
 
-	teardown := setupTestCase(t)
-	defer teardown(t)
+	mock := provmock.MovieProviderMock{}
+	mock.GetMovieMock = func(id int64) (*models.Movie, error) {
+		return &models.Movie{
+			ID:      1,
+			Title:   "The Last Samurai",
+			Runtime: 127,
+			Genres:  []string{"drama", " history"},
+			Year:    2015,
+			Version: 1,
+		}, nil
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
 
 	req := httptest.NewRequest("GET", "localhost:8081/v1/movies/1", nil)
 	w := httptest.NewRecorder()
@@ -292,15 +348,19 @@ func TestApplication_GetMovieHandler_Ok(t *testing.T) {
 	is.Equal(http.StatusOK, resp.StatusCode)
 	is.Equal("application/json", resp.Header.Get("Content-Type"))
 
-	movie := `{"movie":{"id":1,"title":"The Last Samurai","runtime":"824637739352 mins","genres":["drama"," history"],"year":2015,"version":1}}`
+	movie := `{"movie":{"id":1,"title":"The Last Samurai","runtime":"127 mins","genres":["drama"," history"],"year":2015,"version":1}}`
 	is.Equal(movie, string(body))
 }
 
 func TestApplication_GetMovieHandler_BadMovieId(t *testing.T) {
 	is := is2.New(t)
 
-	teardown := setupTestCase(t)
-	defer teardown(t)
+	mock := provmock.MovieProviderMock{}
+	mock.GetMovieMock = func(id int64) (*models.Movie, error) {
+		return nil, errors.New("")
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
 
 	req := httptest.NewRequest("GET", "localhost:8081/v1/movies/7p", nil)
 	w := httptest.NewRecorder()
@@ -321,11 +381,16 @@ func TestApplication_GetMovieHandler_BadMovieId(t *testing.T) {
 	is.Equal(movie, string(body))
 }
 
+
 func TestApplication_GetMovieHandler_MovieNotFound(t *testing.T) {
 	is := is2.New(t)
 
-	teardown := setupTestCase(t)
-	defer teardown(t)
+	mock := provmock.MovieProviderMock{}
+	mock.GetMovieMock = func(id int64) (*models.Movie, error) {
+		return nil, errors.New("")
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
 
 	req := httptest.NewRequest("GET", "localhost:8081/v1/movies/700", nil)
 	w := httptest.NewRecorder()

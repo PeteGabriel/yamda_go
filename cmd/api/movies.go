@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"yamda_go/internal/models"
@@ -20,9 +19,7 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 		Runtime models.Runtime `json:"runtime"`
 		Genres  []string       `json:"genres"`
 	}
-	dec := json.NewDecoder(r.Body)
-	dec.DisallowUnknownFields() //do not accept unknown fields in input
-	if err := dec.Decode(&input); err != nil {
+	if err := app.readJSON(w, r, &input); err != nil {
 		problem := models.ErrorProblem{
 			Title:  "input data not valid",
 			Status: http.StatusBadRequest,

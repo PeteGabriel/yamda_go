@@ -3,6 +3,7 @@ module yamda_go
 go 1.17
 
 require (
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/matryer/is v1.4.0
 	github.com/pkg/errors v0.8.1
@@ -11,7 +12,6 @@ require (
 
 require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
-	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mitchellh/mapstructure v1.4.2 // indirect

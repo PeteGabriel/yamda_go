@@ -25,8 +25,8 @@ const (
 //Application type contains all dependencies for the top layer of
 //the API.
 type Application struct {
-	log    *log.Logger
-	config *config.Settings
+	log      *log.Logger
+	config   *config.Settings
 	movieSvc services.IMovieService
 }
 
@@ -92,6 +92,9 @@ func (app *Application) writeJSON(w http.ResponseWriter, status int, data envelo
 	return nil
 }
 
+//decode body content into JSON content. If any of the validations fails,
+//an human redable error as well as an error code is returned by this method.
+//Althought the default code is 200, the error code should only be considered in case of error.
 func (app *Application) readJSON(w http.ResponseWriter, r *http.Request, dst interface{}) error {
 	//limit size of request body to 1MB
 	maxBytes := 1_048_576
@@ -139,7 +142,7 @@ func (app *Application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 	// additional data in the request body and we return our own custom error message.
 	err := dec.Decode(&struct{}{})
 	if err != io.EOF {
-			return errors.New("body must only contain a single JSON value")
+		return errors.New("body must only contain a single JSON value")
 	}
 	return nil
 }

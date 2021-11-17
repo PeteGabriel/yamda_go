@@ -1,3 +1,10 @@
+<p align="center">
+  <a href="https://github.com/PeteGabriel/yamda_go/actions?query=workflow%3ATest">
+    <img src="https://img.shields.io/github/workflow/status/PeteGabriel/yamda_go/Test?label=%F0%9F%A7%AA%20tests&style=flat&color=75C46B">
+  </a>    
+</p>
+
+
 ## Yet Another Movie Database API 
 
 

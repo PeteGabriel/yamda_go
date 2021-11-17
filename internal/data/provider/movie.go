@@ -15,6 +15,8 @@ import (
 type IMovieProvider interface {
 	GetMovie(id int64) (*models.Movie, error)
 	CreateMovie(models.Movie) (bool, error)
+	UpdateMovie(models.Movie) error
+	DeleteMovie(id int64) error
 }
 
 type MovieProvider struct {
@@ -75,7 +77,7 @@ func (p *MovieProvider) GetMovie(id int64) (*models.Movie, error) {
 }
 
 func (p *MovieProvider) CreateMovie(m models.Movie) (bool, error) {
-	query := "INSERT INTO Movie (Title, Runtime, Genres, Year, Version) VALUES (?, ?, ?, ?, ?);"
+	query := "INSERT INTO Movie (title, runtime, genres, year, version) VALUES (?, ?, ?, ?, ?);"
 	stmtIns, err := p.db.Prepare(query)
 	if err != nil {
 		return false, err
@@ -86,4 +88,24 @@ func (p *MovieProvider) CreateMovie(m models.Movie) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+func (p *MovieProvider) UpdateMovie(m models.Movie) error {
+	query := "UPDATE Movie  SET title=?, runtime=?, genres=?, year=?, version=? WHERE id=?;"
+	stmtIns, err := p.db.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmtIns.Close()
+	_, err = stmtIns.Exec(m.Title, m.Runtime, strings.Join(m.Genres, ", "), m.Year, m.Version)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *MovieProvider) DeleteMovie(id int64) error {
+	query := "DELETE FROM Movie WHERE id=?;"
+	
+	return nil
 }

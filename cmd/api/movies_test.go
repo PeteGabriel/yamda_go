@@ -9,7 +9,6 @@ import (
 	"os"
 	"strings"
 	"testing"
-	"time"
 	"yamda_go/internal/config"
 	provmock "yamda_go/internal/mocks/data/provider"
 	"yamda_go/internal/models"
@@ -323,7 +322,6 @@ func TestApplication_CreateMovieHandler_Ok(t *testing.T) {
 	mock.CreateMovieMock = func(movie *models.Movie) (*models.Movie, error) {
 		movie.ID = 12
 		movie.Version = 1
-		movie.CreatedAt = time.UnixMilli(12345678)
 		return movie, nil
 	}
 	teardown := setupTestCase(mock)

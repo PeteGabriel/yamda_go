@@ -14,7 +14,7 @@ import (
 
 type IMovieProvider interface {
 	GetMovie(id int64) (*models.Movie, error)
-	CreateMovie(models.Movie) (bool, error)
+	CreateMovie(*models.Movie) (*models.Movie, error)
 	UpdateMovie(models.Movie) error
 	DeleteMovie(id int64) error
 }
@@ -76,18 +76,22 @@ func (p *MovieProvider) GetMovie(id int64) (*models.Movie, error) {
 	return &m, nil
 }
 
-func (p *MovieProvider) CreateMovie(m models.Movie) (bool, error) {
-	query := "INSERT INTO Movie (title, runtime, genres, year, version) VALUES (?, ?, ?, ?, ?);"
+func (p *MovieProvider) CreateMovie(m *models.Movie) (*models.Movie, error) {
+	query := `
+		INSERT INTO Movie (title, runtime, genres, year, version)
+		VALUES (?, ?, ?, ?, ?)
+		RETURNING ID, created_at, version`
 	stmtIns, err := p.db.Prepare(query)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	defer stmtIns.Close()
-	_, err = stmtIns.Exec(m.Title, m.Runtime, strings.Join(m.Genres, ", "), m.Year, m.Version)
+	args := []interface{}{m.Title, m.Runtime, strings.Join(m.Genres, ", "), m.Year, m.Version}
+	err = stmtIns.QueryRow(args).Scan(&m.ID, &m.CreatedAt, &m.Version)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	return true, nil
+	return m, nil
 }
 
 func (p *MovieProvider) UpdateMovie(m models.Movie) error {
@@ -106,6 +110,14 @@ func (p *MovieProvider) UpdateMovie(m models.Movie) error {
 
 func (p *MovieProvider) DeleteMovie(id int64) error {
 	query := "DELETE FROM Movie WHERE id=?;"
-	
+	stmtIns, err := p.db.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmtIns.Close()
+	_, err = stmtIns.Exec(id)
+	if err != nil {
+		return err
+	}
 	return nil
 }

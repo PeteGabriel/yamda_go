@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 	"yamda_go/internal/config"
 	provmock "yamda_go/internal/mocks/data/provider"
 	"yamda_go/internal/models"
@@ -39,8 +40,8 @@ func TestApplication_CreateMovieHandler_NoInputReceived(t *testing.T) {
 
 	//setup mock for provider
 	mock := provmock.MovieProviderMock{}
-	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
-		return false, nil //dummy return in this case
+	mock.CreateMovieMock = func(movie *models.Movie) (*models.Movie, error) {
+		return nil, nil //dummy return in this case
 	}
 	teardown := setupTestCase(mock)
 	defer teardown()
@@ -62,8 +63,8 @@ func TestApplication_CreateMovieHandler_InputContainsUnknownFields(t *testing.T)
 	is := is2.New(t)
 
 	mock := provmock.MovieProviderMock{}
-	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
-		return false, nil //dummy return in this case
+	mock.CreateMovieMock = func(movie *models.Movie) (*models.Movie, error) {
+		return nil, nil //dummy return in this case
 	}
 	teardown := setupTestCase(mock)
 	defer teardown()
@@ -86,8 +87,8 @@ func TestApplication_CreateMovieHandler_InputContainsMultipleMovies(t *testing.T
 	is := is2.New(t)
 
 	mock := provmock.MovieProviderMock{}
-	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
-		return false, nil //dummy return in this case
+	mock.CreateMovieMock = func(movie *models.Movie) (*models.Movie, error) {
+		return nil, nil //dummy return in this case
 	}
 	teardown := setupTestCase(mock)
 	defer teardown()
@@ -110,8 +111,8 @@ func TestApplication_CreateMovieHandler_InputContainsGarbageContent(t *testing.T
 	is := is2.New(t)
 
 	mock := provmock.MovieProviderMock{}
-	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
-		return false, nil //dummy return in this case
+	mock.CreateMovieMock = func(movie *models.Movie) (*models.Movie, error) {
+		return nil, nil //dummy return in this case
 	}
 	teardown := setupTestCase(mock)
 	defer teardown()
@@ -134,8 +135,8 @@ func TestApplication_CreateMovieHandler_InputNotValidJSON(t *testing.T) {
 	is := is2.New(t)
 
 	mock := provmock.MovieProviderMock{}
-	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
-		return false, nil //dummy return in this case
+	mock.CreateMovieMock = func(movie *models.Movie) (*models.Movie, error) {
+		return nil, nil //dummy return in this case
 	}
 	teardown := setupTestCase(mock)
 	defer teardown()
@@ -158,8 +159,8 @@ func TestApplication_CreateMovieHandler_TitleIsEmptyOrLongerThan500Bytes(t *test
 	is := is2.New(t)
 
 	mock := provmock.MovieProviderMock{}
-	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
-		return false, nil //dummy return in this case
+	mock.CreateMovieMock = func(movie *models.Movie) (*models.Movie, error) {
+		return nil, nil //dummy return in this case
 	}
 	teardown := setupTestCase(mock)
 	defer teardown()
@@ -193,8 +194,8 @@ func TestApplication_CreateMovieHandler_TitleIsEmptyOrLongerThan500Bytes(t *test
 func TestApplication_CreateMovieHandler_YearIsEmptyOrHasInvalidRange(t *testing.T) {
 	is := is2.New(t)
 	mock := provmock.MovieProviderMock{}
-	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
-		return false, nil //dummy return in this case
+	mock.CreateMovieMock = func(movie *models.Movie) (*models.Movie, error) {
+		return nil, nil //dummy return in this case
 	}
 	teardown := setupTestCase(mock)
 	defer teardown()
@@ -227,8 +228,8 @@ func TestApplication_CreateMovieHandler_YearIsEmptyOrHasInvalidRange(t *testing.
 func TestApplication_CreateMovieHandler_RuntimeIsNegativeInteger(t *testing.T) {
 	is := is2.New(t)
 	mock := provmock.MovieProviderMock{}
-	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
-		return false, nil //dummy return in this case
+	mock.CreateMovieMock = func(movie *models.Movie) (*models.Movie, error) {
+		return nil, nil //dummy return in this case
 	}
 	teardown := setupTestCase(mock)
 	defer teardown()
@@ -250,8 +251,8 @@ func TestApplication_CreateMovieHandler_RuntimeIsNegativeInteger(t *testing.T) {
 func TestApplication_CreateMovieHandler_GenresIsEmpty(t *testing.T) {
 	is := is2.New(t)
 	mock := provmock.MovieProviderMock{}
-	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
-		return false, nil //dummy return in this case
+	mock.CreateMovieMock = func(movie *models.Movie) (*models.Movie, error) {
+		return nil, nil //dummy return in this case
 	}
 	teardown := setupTestCase(mock)
 	defer teardown()
@@ -273,8 +274,8 @@ func TestApplication_CreateMovieHandler_GenresIsEmpty(t *testing.T) {
 func TestApplication_CreateMovieHandler_GenresMustNotExceed5(t *testing.T) {
 	is := is2.New(t)
 	mock := provmock.MovieProviderMock{}
-	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
-		return false, nil //dummy return in this case
+	mock.CreateMovieMock = func(movie *models.Movie) (*models.Movie, error) {
+		return nil, nil //dummy return in this case
 	}
 	teardown := setupTestCase(mock)
 	defer teardown()
@@ -296,8 +297,8 @@ func TestApplication_CreateMovieHandler_GenresMustNotExceed5(t *testing.T) {
 func TestApplication_CreateMovieHandler_GenresMustBeUnique(t *testing.T) {
 	is := is2.New(t)
 	mock := provmock.MovieProviderMock{}
-	mock.CreateMovieMock = func(movie models.Movie) (bool, error) {
-		return false, nil //dummy return in this case
+	mock.CreateMovieMock = func(movie *models.Movie) (*models.Movie, error) {
+		return nil, nil //dummy return in this case
 	}
 	teardown := setupTestCase(mock)
 	defer teardown()
@@ -313,6 +314,32 @@ func TestApplication_CreateMovieHandler_GenresMustBeUnique(t *testing.T) {
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
 	expectedBody := `{"title":"input data not valid","status":422,"detail":"content of movie entity is not valid","errors":{"genres":"must not contain duplicate values"}}`
+	is.Equal(expectedBody, string(body))
+}
+
+func TestApplication_CreateMovieHandler_Ok(t *testing.T) {
+	is := is2.New(t)
+	mock := provmock.MovieProviderMock{}
+	mock.CreateMovieMock = func(movie *models.Movie) (*models.Movie, error) {
+		movie.ID = 12
+		movie.Version = 1
+		movie.CreatedAt = time.UnixMilli(12345678)
+		return movie, nil
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
+
+	content := `{"title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama"]}`
+	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
+	w := httptest.NewRecorder()
+	app.CreateMovieHandler(w, req, nil)
+
+	resp := w.Result()
+	body, _ := io.ReadAll(resp.Body)
+
+	is.Equal(http.StatusCreated, resp.StatusCode)
+	is.Equal("application/json", resp.Header.Get("Content-Type"))
+	expectedBody := `{"movie":{"id":12,"title":"Casablanca","runtime":"125 mins","genres":["historical","drama"],"year":2020,"version":1}}`
 	is.Equal(expectedBody, string(body))
 }
 
@@ -409,4 +436,28 @@ func TestApplication_GetMovieHandler_MovieNotFound(t *testing.T) {
 
 	movie := `{"title":"movie not found","status":404,"detail":"movie with id 700 not found"}`
 	is.Equal(movie, string(body))
+}
+
+func TestApplication_UpdateMovieHandler_Ok(t *testing.T) {
+	is := is2.New(t)
+	mock := provmock.MovieProviderMock{}
+	mock.UpdateMovieMock = func(m models.Movie) error {
+		return nil
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
+
+	content := `{"Id":"1", "title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": ["historical", "fantasy"]}`
+	req := httptest.NewRequest("PUT", "localhost:8081/v1/movies", strings.NewReader(content))
+	w := httptest.NewRecorder()
+	app.UpdateMovieHandler(w, req, nil)
+
+	resp := w.Result()
+	body, _ := io.ReadAll(resp.Body)
+	is.Equal(http.StatusNoContent, resp.StatusCode)
+	is.Equal(string(body), "")
+}
+
+func TestApplication_UpdateMovieHandler_UnknownField(t *testing.T) {
+	_ = is2.New(t)
 }

@@ -31,3 +31,8 @@ func (m *Movie) Validate(v *validator.Validator) {
 	v.Check(len(m.Genres) <= 5, "genres", "must not contain more than 5 genres")
 	v.Check(validator.Unique(m.Genres), "genres", "must not contain duplicate values")
 }
+
+func (m *Movie) ValidateWithId(v *validator.Validator) {
+	v.Check(m.ID > 0, "ID", "ID must be provided and bigger than 0")
+	m.Validate(v)
+}

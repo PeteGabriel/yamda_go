@@ -6,10 +6,10 @@ import (
 )
 
 type IMovieService interface {
-	CreateMovie(*models.Movie) (*models.Movie, error)
-	GetMovie(int64) (*models.Movie, error)
-	UpdateMovie(models.Movie) error
-	DeleteMovie(int64) error
+	Insert(*models.Movie) (*models.Movie, error)
+	Get(int64) (*models.Movie, error)
+	Update(models.Movie) error
+	Delete(int64) error
 }
 
 type MovieService struct {
@@ -22,22 +22,22 @@ func New(p provider.IMovieProvider) IMovieService {
 	}
 }
 
-func (s *MovieService) CreateMovie(m *models.Movie) (*models.Movie, error) {
-	return s.p.CreateMovie(m)
+func (s *MovieService) Insert(m *models.Movie) (*models.Movie, error) {
+	return s.p.Insert(m)
 }
 
-func (s *MovieService) GetMovie(id int64) (*models.Movie, error) {
-	m, err := s.p.GetMovie(id)
+func (s *MovieService) Get(id int64) (*models.Movie, error) {
+	m, err := s.p.Get(id)
 	if err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func (s *MovieService) UpdateMovie(m models.Movie) error {
-	return s.p.UpdateMovie(m)
+func (s *MovieService) Update(m models.Movie) error {
+	return s.p.Update(m)
 }
 
-func (s *MovieService) DeleteMovie(id int64) error {
-	return s.p.DeleteMovie(id)
+func (s *MovieService) Delete(id int64) error {
+	return s.p.Delete(id)
 }

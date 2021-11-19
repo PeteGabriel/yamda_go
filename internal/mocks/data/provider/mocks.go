@@ -9,18 +9,18 @@ type MovieProviderMock struct {
 	DeleteMovieMock func(int64) error
 }
 
-func (m MovieProviderMock) GetMovie(id int64) (*models.Movie, error) {
+func (m MovieProviderMock) Get(id int64) (*models.Movie, error) {
 	return m.GetMovieMock(id)
 }
 
-func (m MovieProviderMock) CreateMovie(movie *models.Movie) (*models.Movie, error) {
+func (m MovieProviderMock) Insert(movie *models.Movie) (*models.Movie, error) {
 	return m.CreateMovieMock(movie)
 }
 
-func (m MovieProviderMock) UpdateMovie(movie models.Movie) error {
+func (m MovieProviderMock) Update(movie models.Movie) error {
 	return m.UpdateMovieMock(movie)
 }
 
-func (m MovieProviderMock) DeleteMovie(id int64) error {
+func (m MovieProviderMock) Delete(id int64) error {
 	return m.DeleteMovieMock(id)
 }

@@ -13,10 +13,10 @@ import (
 )
 
 type IMovieProvider interface {
-	GetMovie(id int64) (*models.Movie, error)
-	CreateMovie(*models.Movie) (*models.Movie, error)
-	UpdateMovie(models.Movie) error
-	DeleteMovie(id int64) error
+	Get(id int64) (*models.Movie, error)
+	Insert(*models.Movie) (*models.Movie, error)
+	Update(models.Movie) error
+	Delete(id int64) error
 }
 
 type MovieProvider struct {
@@ -40,7 +40,7 @@ func New(set *config.Settings) IMovieProvider {
 	}
 }
 
-func (p *MovieProvider) GetMovie(id int64) (*models.Movie, error) {
+func (p *MovieProvider) Get(id int64) (*models.Movie, error) {
 	query := "SELECT * FROM Movie WHERE Id=?"
 	stmt, err := p.db.Prepare(query)
 	if err != nil {
@@ -76,7 +76,7 @@ func (p *MovieProvider) GetMovie(id int64) (*models.Movie, error) {
 	return &m, nil
 }
 
-func (p *MovieProvider) CreateMovie(m *models.Movie) (*models.Movie, error) {
+func (p *MovieProvider) Insert(m *models.Movie) (*models.Movie, error) {
 	query := `
 		INSERT INTO Movie (title, runtime, genres, year, version)
 		VALUES (?, ?, ?, ?, ?)
@@ -94,7 +94,7 @@ func (p *MovieProvider) CreateMovie(m *models.Movie) (*models.Movie, error) {
 	return m, nil
 }
 
-func (p *MovieProvider) UpdateMovie(m models.Movie) error {
+func (p *MovieProvider) Update(m models.Movie) error {
 	query := "UPDATE Movie  SET title=?, runtime=?, genres=?, year=?, version=? WHERE id=?;"
 	stmtIns, err := p.db.Prepare(query)
 	if err != nil {
@@ -108,7 +108,7 @@ func (p *MovieProvider) UpdateMovie(m models.Movie) error {
 	return nil
 }
 
-func (p *MovieProvider) DeleteMovie(id int64) error {
+func (p *MovieProvider) Delete(id int64) error {
 	query := "DELETE FROM Movie WHERE id=?;"
 	stmtIns, err := p.db.Prepare(query)
 	if err != nil {

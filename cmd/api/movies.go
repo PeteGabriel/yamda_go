@@ -80,12 +80,7 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 func (app *Application) GetMovieHandler(w http.ResponseWriter, _ *http.Request, p httprouter.Params) {
 	num, err := app.ParseId(p)
 	if err != nil {
-		problem := models.ErrorProblem{
-			Title:  "error trying to parse id from route:",
-			Status: http.StatusBadRequest,
-			Detail: err.Error(),
-		}
-		app.log.Println(err)
+		problem := parsingError(err)
 		if err = app.writeError(w, http.StatusBadRequest, problem, nil); err != nil {
 			app.log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -100,7 +95,6 @@ func (app *Application) GetMovieHandler(w http.ResponseWriter, _ *http.Request, 
 			Status: http.StatusNotFound,
 			Detail: fmt.Sprintf("movie with id %d not found", num),
 		}
-		app.log.Println(err)
 		if err = app.writeError(w, http.StatusNotFound, problem, nil); err != nil {
 			app.log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -118,5 +112,37 @@ func (app *Application) UpdateMovieHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (app *Application) DeleteMovieHandler(w http.ResponseWriter, _ *http.Request, p httprouter.Params) {
+	num, err := app.ParseId(p)
+	if err != nil {
+		parseErr := parsingError(err)
+		if err = app.writeError(w, http.StatusBadRequest, parseErr, nil); err != nil {
+			app.log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
 
+	if err := app.movieSvc.Delete(num); err != nil {
+		notFndErr := models.ErrorProblem{
+			Title:  "movie not found",
+			Status: http.StatusNotFound,
+			Detail: fmt.Sprintf("movie with id %d not found", num),
+		}
+		if err = app.writeError(w, http.StatusNotFound, notFndErr, nil); err != nil {
+			app.log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}else{
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+
+
+func parsingError(err error) models.ErrorProblem {
+	return models.ErrorProblem{
+		Title:  "error trying to parse id from route:",
+		Status: http.StatusBadRequest,
+		Detail: err.Error(),
+	}
 }

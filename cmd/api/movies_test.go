@@ -34,6 +34,10 @@ func setupTestCase(m provmock.MovieProviderMock) func() {
 	}
 }
 
+/*********************************************************
+** CREATE
+*********************************************************/
+
 func TestApplication_CreateMovieHandler_NoInputReceived(t *testing.T) {
 	is := is2.New(t)
 
@@ -341,6 +345,10 @@ func TestApplication_CreateMovieHandler_Ok(t *testing.T) {
 	is.Equal(expectedBody, string(body))
 }
 
+/*********************************************************
+** GET MOVIE
+*********************************************************/
+
 func TestApplication_GetMovieHandler_Ok(t *testing.T) {
 	is := is2.New(t)
 
@@ -406,7 +414,6 @@ func TestApplication_GetMovieHandler_BadMovieId(t *testing.T) {
 	is.Equal(movie, string(body))
 }
 
-
 func TestApplication_GetMovieHandler_MovieNotFound(t *testing.T) {
 	is := is2.New(t)
 
@@ -436,6 +443,10 @@ func TestApplication_GetMovieHandler_MovieNotFound(t *testing.T) {
 	is.Equal(movie, string(body))
 }
 
+/*********************************************************
+** UPDATE
+*********************************************************/
+
 func TestApplication_UpdateMovieHandler_Ok(t *testing.T) {
 	is := is2.New(t)
 	mock := provmock.MovieProviderMock{}
@@ -458,4 +469,61 @@ func TestApplication_UpdateMovieHandler_Ok(t *testing.T) {
 
 func TestApplication_UpdateMovieHandler_UnknownField(t *testing.T) {
 	_ = is2.New(t)
+}
+
+/*********************************************************
+** DELETE
+*********************************************************/
+func TestApplication_DeleteMovieHandler_Ok(t *testing.T) {
+	is := is2.New(t)
+	mock := provmock.MovieProviderMock{}
+	mock.DeleteMovieMock = func(i int64) error {
+		return nil
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
+
+	req := httptest.NewRequest("DELETE", "localhost:8081/v1/movies/1", nil)
+	w := httptest.NewRecorder()
+	p := httprouter.Params{
+		httprouter.Param{
+			Key:   "id",
+			Value: "1",
+		},
+	}
+	app.DeleteMovieHandler(w, req, p)
+
+	resp := w.Result()
+	body, _ := io.ReadAll(resp.Body)
+	is.Equal(http.StatusOK, resp.StatusCode)
+	is.Equal(string(body), "")
+}
+
+func TestApplication_DeleteMovieHandler_MovieNotFound(t *testing.T) {
+	is := is2.New(t)
+	mock := provmock.MovieProviderMock{}
+	mock.DeleteMovieMock = func(i int64) error {
+		return errors.New("movie not found")
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
+
+	req := httptest.NewRequest("DELETE", "localhost:8081/v1/movies/1", nil)
+	w := httptest.NewRecorder()
+	p := httprouter.Params{
+		httprouter.Param{
+			Key:   "id",
+			Value: "1",
+		},
+	}
+	app.DeleteMovieHandler(w, req, p)
+
+	resp := w.Result()
+	body, _ := io.ReadAll(resp.Body)
+	is.Equal(http.StatusNotFound, resp.StatusCode)
+	
+	
+	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
+	expectedBody := `{"title":"movie not found","status":404,"detail":"movie with id 1 not found"}`
+	is.Equal(expectedBody, string(body))
 }

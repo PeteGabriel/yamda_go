@@ -45,7 +45,7 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 	movie.Validate(v)
 	if v.IsValid() {
 		//create new movie
-		if _, err := app.movieSvc.Insert(movie); err != nil {
+		if _, err := app.provider.Insert(movie); err != nil {
 			problem := models.ErrorProblem{
 				Title:  "movie not created",
 				Status: http.StatusInternalServerError,
@@ -88,7 +88,7 @@ func (app *Application) GetMovieHandler(w http.ResponseWriter, _ *http.Request, 
 		return
 	}
 
-	movie, err := app.movieSvc.Get(num)
+	movie, err := app.provider.Get(num)
 	if err != nil {
 		problem := models.ErrorProblem{
 			Title:  "movie not found",
@@ -122,7 +122,7 @@ func (app *Application) DeleteMovieHandler(w http.ResponseWriter, _ *http.Reques
 		return
 	}
 
-	if err := app.movieSvc.Delete(num); err != nil {
+	if err := app.provider.Delete(num); err != nil {
 		notFndErr := models.ErrorProblem{
 			Title:  "movie not found",
 			Status: http.StatusNotFound,

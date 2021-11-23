@@ -12,7 +12,6 @@ import (
 	"yamda_go/internal/config"
 	provmock "yamda_go/internal/mocks/data/provider"
 	"yamda_go/internal/models"
-	"yamda_go/internal/services"
 
 	"github.com/julienschmidt/httprouter"
 	is2 "github.com/matryer/is"
@@ -20,13 +19,13 @@ import (
 
 var app *Application = nil
 
-func setupTestCase(m provmock.MovieProviderMock) func() {
+func setupTestCase(p provmock.MovieProviderMock) func() {
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	cfg, _ := config.New("./../../debug.env")
 	app = &Application{
 		log:      logger,
 		config:   cfg,
-		movieSvc: services.New(m),
+		provider: p,
 	}
 	return func() {
 		//some teardown

@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"yamda_go/internal/config"
+	"yamda_go/internal/data/provider"
 	"yamda_go/internal/models"
-	"yamda_go/internal/services"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -27,7 +27,7 @@ const (
 type Application struct {
 	log      *log.Logger
 	config   *config.Settings
-	movieSvc services.IMovieService
+	provider provider.IMovieProvider
 }
 
 //ParseId parses the parameter id present in a given

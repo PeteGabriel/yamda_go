@@ -438,13 +438,34 @@ func TestApplication_GetMovieHandler_MovieNotFound(t *testing.T) {
 	is.Equal(http.StatusNotFound, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
 
-	movie := `{"title":"movie not found","status":404,"detail":"movie with id 700 not found"}`
-	is.Equal(movie, string(body))
+	expectedBody := `{"title":"movie not found","status":404,"detail":"movie with id 700 not found"}`
+	is.Equal(expectedBody, string(body))
 }
 
 /*********************************************************
 ** UPDATE
 *********************************************************/
+
+func TestApplication_UpdateMovieHandler_WithoutSpecifyingID(t *testing.T) {
+	is := is2.New(t)
+	mock := provmock.MovieProviderMock{}
+	mock.UpdateMovieMock = func(m models.Movie) error {
+		return nil
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
+
+	content := `{"title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama"]}`
+	req := httptest.NewRequest("PUT", "localhost:8081/v1/movies", strings.NewReader(content))
+	w := httptest.NewRecorder()
+	app.UpdateMovieHandler(w, req, nil)
+
+	resp := w.Result()
+	body, _ := io.ReadAll(resp.Body)
+	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
+	expectedBody := `{"title":"input data not valid","status":422,"detail":"content of movie entity is not valid","errors":{"ID":"ID must be provided and bigger than 0"}}`
+	is.Equal(string(body), expectedBody)
+}
 
 func TestApplication_UpdateMovieHandler_Ok(t *testing.T) {
 	is := is2.New(t)
@@ -455,11 +476,11 @@ func TestApplication_UpdateMovieHandler_Ok(t *testing.T) {
 	teardown := setupTestCase(mock)
 	defer teardown()
 
-	content := `{"Id":"1", "title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": ["historical", "fantasy"]}`
+	content := `{"id": 1, "title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama"]}`
 	req := httptest.NewRequest("PUT", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
 	app.UpdateMovieHandler(w, req, nil)
-
+	
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
 	is.Equal(http.StatusNoContent, resp.StatusCode)

@@ -9,7 +9,11 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-const tag = "CreateMovieHandler:"
+const (
+	tag                = "CreateMovieHandler:"
+	TagUpdatehandler   = "UpdateMovieHandler:"
+	ErrContentNotValid = "content of movie entity is not valid"
+)
 
 func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	//how we expect data from outside
@@ -66,7 +70,7 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 	problem := models.ErrorProblem{
 		Title:  "input data not valid",
 		Status: http.StatusUnprocessableEntity,
-		Detail: "content of movie entity is not valid",
+		Detail: ErrContentNotValid,
 		Errors: v.Errors,
 	}
 	app.log.Println(tag, problem)
@@ -108,6 +112,52 @@ func (app *Application) GetMovieHandler(w http.ResponseWriter, _ *http.Request, 
 }
 
 func (app *Application) UpdateMovieHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	var m struct {
+		ID      int64          `json:"id"`
+		Title   string         `json:"title"`
+		Year    int32          `json:"year"`
+		Runtime models.Runtime `json:"runtime"`
+		Genres  []string       `json:"genres"`
+	}
+	if err := app.readJSON(w, r, &m); err != nil {
+		problem := models.ErrorProblem{
+			Title:  "input data not valid",
+			Status: http.StatusBadRequest,
+			Detail: err.Error(),
+		}
+		app.log.Println(TagUpdatehandler, err.Error())
+		if err = app.writeError(w, http.StatusBadRequest, problem, nil); err != nil {
+			app.log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	//validate movie contents
+	v := validator.New()
+	// Copy the values from the input struct to a new Movie struct.
+	movie := &models.Movie{
+		ID:      m.ID,
+		Title:   m.Title,
+		Year:    m.Year,
+		Runtime: m.Runtime,
+		Genres:  m.Genres,
+	}
+	movie.ValidateWithId(v)
+	if !v.IsValid() {
+		problem := models.ErrorProblem{
+			Title:  "input data not valid",
+			Status: http.StatusUnprocessableEntity,
+			Detail: ErrContentNotValid,
+			Errors: v.Errors,
+		}
+		app.log.Println(TagUpdatehandler, problem)
+		if err := app.writeError(w, http.StatusUnprocessableEntity, problem, nil); err != nil {
+			app.log.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -132,12 +182,10 @@ func (app *Application) DeleteMovieHandler(w http.ResponseWriter, _ *http.Reques
 			app.log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-	}else{
+	} else {
 		w.WriteHeader(http.StatusOK)
 	}
 }
-
-
 
 func parsingError(err error) models.ErrorProblem {
 	return models.ErrorProblem{

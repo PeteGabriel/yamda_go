@@ -30,6 +30,7 @@ func New(set *config.Settings) IMovieProvider {
 	}
 	//validate connection to database is open correctly
 	if err = db.Ping(); err != nil {
+		log.Println("Ping")
 		log.Fatal(err.Error())
 	}
 	db.SetConnMaxLifetime(time.Minute * time.Duration(set.ConnMaxLifetime))
@@ -70,7 +71,7 @@ func (p *MovieProvider) Get(id int64) (*models.Movie, error) {
 		Genres:    strings.Split(tmp.Genres, ","),
 		Year:      tmp.Year,
 		Version:   tmp.Version,
-		CreatedAt: time.Now(), //todo change to use row field
+		//TODO fix CreatedAt: time.Now(), //todo change to use row field
 	}
 
 	return &m, nil
@@ -86,8 +87,8 @@ func (p *MovieProvider) Insert(m *models.Movie) (*models.Movie, error) {
 		return nil, err
 	}
 	defer stmtIns.Close()
-	args := []interface{}{m.Title, m.Runtime, strings.Join(m.Genres, ", "), m.Year, m.Version}
-	err = stmtIns.QueryRow(args).Scan(&m.ID, &m.CreatedAt, &m.Version)
+	args := []interface{}{m.Title, 157, strings.Join(m.Genres, ", "), m.Year, m.Version}
+	err = stmtIns.QueryRow(args...).Scan(&m.ID, &m.CreatedAt, &m.Version)
 	if err != nil {
 		return nil, err
 	}

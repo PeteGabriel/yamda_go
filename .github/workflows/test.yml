@@ -8,6 +8,9 @@ jobs:
         platform: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
+    - uses: actions/checkout@v1
+    - name: Build the docker-compose stack
+      run: docker-compose -f "docker-compose.yaml" up -d --build
     - name: Install Go
       uses: actions/setup-go@v1
       with:

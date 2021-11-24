@@ -30,10 +30,12 @@
 
 This API tries to make use of a standardized mediatype called `application/problem+json`. You should expect this for all
 the errors in the range 400-4xx.
-
+```
 HTTP/1.1 401 Unauthorized
 Content-Type: application/problem+json; charset=utf-8
 Date: Wed, 07 Aug 2019 10:10:06 GMT
+```
+
 ```json
 {
     "type": "https://example.com/v1/movies/78",

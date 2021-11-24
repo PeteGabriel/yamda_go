@@ -340,6 +340,7 @@ func TestApplication_CreateMovieHandler_Ok(t *testing.T) {
 
 	is.Equal(http.StatusCreated, resp.StatusCode)
 	is.Equal("application/json", resp.Header.Get("Content-Type"))
+	is.Equal("/v1/movies/12", resp.Header.Get("Location"))
 	expectedBody := `{"movie":{"id":12,"title":"Casablanca","runtime":"125 mins","genres":["historical","drama"],"year":2020,"version":1}}`
 	is.Equal(expectedBody, string(body))
 }
@@ -409,7 +410,7 @@ func TestApplication_GetMovieHandler_BadMovieId(t *testing.T) {
 	is.Equal(http.StatusBadRequest, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
 
-	movie := `{"title":"error trying to parse id from route:","status":400,"detail":"invalid id parameter from route parameters"}`
+	movie := `{"title":"input data not valid","status":400,"detail":"invalid id parameter from route parameters"}`
 	is.Equal(movie, string(body))
 }
 

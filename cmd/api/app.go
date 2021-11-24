@@ -146,3 +146,28 @@ func (app *Application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 	}
 	return nil
 }
+
+func (app *Application) failedValidationResponse(w http.ResponseWriter, errors map[string]string) {
+	problem := models.ErrorProblem{
+		Title:  "input data not valid",
+		Status: http.StatusUnprocessableEntity,
+		Detail: ErrContentNotValid,
+		Errors: errors,
+	}
+	if err := app.writeError(w, http.StatusUnprocessableEntity, problem, nil); err != nil {
+		app.log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (app *Application) badRequestResponse(w http.ResponseWriter, err error) {
+	problem := models.ErrorProblem{
+		Title:  "input data not valid",
+		Status: http.StatusBadRequest,
+		Detail: err.Error(),
+	}
+	if err = app.writeError(w, http.StatusBadRequest, problem, nil); err != nil {
+		app.log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}

@@ -24,16 +24,7 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 		Genres  []string       `json:"genres"`
 	}
 	if err := app.readJSON(w, r, &input); err != nil {
-		problem := models.ErrorProblem{
-			Title:  "input data not valid",
-			Status: http.StatusBadRequest,
-			Detail: err.Error(),
-		}
-		app.log.Println(tag, err.Error())
-		if err = app.writeError(w, http.StatusBadRequest, problem, nil); err != nil {
-			app.log.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+		app.badRequestResponse(w, err)
 		return
 	}
 
@@ -47,48 +38,35 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 		Genres:  input.Genres,
 	}
 	movie.Validate(v)
-	if v.IsValid() {
-		//create new movie
-		if _, err := app.provider.Insert(movie); err != nil {
-			problem := models.ErrorProblem{
-				Title:  "movie not created",
-				Status: http.StatusInternalServerError,
-				Detail: err.Error(),
-			}
-			app.log.Println(tag, err.Error())
-			if err = app.writeError(w, http.StatusInternalServerError, problem, nil); err != nil {
-				app.log.Println(err)
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-			}
+	if !v.IsValid() {
+		app.failedValidationResponse(w, v.Errors)
+		return 
+	}
+	//create new movie
+	if _, err := app.provider.Insert(movie); err != nil {
+		problem := models.ErrorProblem{
+			Title:  "movie not created",
+			Status: http.StatusInternalServerError,
+			Detail: err.Error(),
 		}
-		if err := app.writeJSON(w, http.StatusCreated, envelope{"movie": movie}, nil); err != nil {
+		app.log.Println(tag, err.Error())
+		if err = app.writeError(w, http.StatusInternalServerError, problem, nil); err != nil {
 			app.log.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		return
 	}
-	problem := models.ErrorProblem{
-		Title:  "input data not valid",
-		Status: http.StatusUnprocessableEntity,
-		Detail: ErrContentNotValid,
-		Errors: v.Errors,
-	}
-	app.log.Println(tag, problem)
-	if err := app.writeError(w, http.StatusUnprocessableEntity, problem, nil); err != nil {
+	headers := make(http.Header)
+  headers.Set("Location", fmt.Sprintf("/v1/movies/%d", movie.ID))
+	if err := app.writeJSON(w, http.StatusCreated, envelope{"movie": movie}, headers); err != nil {
 		app.log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-
 }
 
 func (app *Application) GetMovieHandler(w http.ResponseWriter, _ *http.Request, p httprouter.Params) {
 	num, err := app.ParseId(p)
 	if err != nil {
-		problem := parsingError(err)
-		if err = app.writeError(w, http.StatusBadRequest, problem, nil); err != nil {
-			app.log.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+		app.badRequestResponse(w, err)
 		return
 	}
 
@@ -120,16 +98,7 @@ func (app *Application) UpdateMovieHandler(w http.ResponseWriter, r *http.Reques
 		Genres  []string       `json:"genres"`
 	}
 	if err := app.readJSON(w, r, &m); err != nil {
-		problem := models.ErrorProblem{
-			Title:  "input data not valid",
-			Status: http.StatusBadRequest,
-			Detail: err.Error(),
-		}
-		app.log.Println(TagUpdatehandler, err.Error())
-		if err = app.writeError(w, http.StatusBadRequest, problem, nil); err != nil {
-			app.log.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+		app.badRequestResponse(w, err)
 		return
 	}
 
@@ -145,30 +114,17 @@ func (app *Application) UpdateMovieHandler(w http.ResponseWriter, r *http.Reques
 	}
 	movie.ValidateWithId(v)
 	if !v.IsValid() {
-		problem := models.ErrorProblem{
-			Title:  "input data not valid",
-			Status: http.StatusUnprocessableEntity,
-			Detail: ErrContentNotValid,
-			Errors: v.Errors,
-		}
-		app.log.Println(TagUpdatehandler, problem)
-		if err := app.writeError(w, http.StatusUnprocessableEntity, problem, nil); err != nil {
-			app.log.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-		return
+		app.failedValidationResponse(w, v.Errors)
+		return 
 	}
+
 	w.WriteHeader(http.StatusNoContent)
 }
 
 func (app *Application) DeleteMovieHandler(w http.ResponseWriter, _ *http.Request, p httprouter.Params) {
 	num, err := app.ParseId(p)
 	if err != nil {
-		parseErr := parsingError(err)
-		if err = app.writeError(w, http.StatusBadRequest, parseErr, nil); err != nil {
-			app.log.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+		app.badRequestResponse(w, err)
 		return
 	}
 

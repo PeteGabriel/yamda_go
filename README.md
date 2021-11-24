@@ -45,3 +45,13 @@ Date: Wed, 07 Aug 2019 10:10:06 GMT
     "instance": "/error/123456/details"
 }
 ```
+
+### Running locally
+
+You can start the database dependecy as a Docker container by running the following command:
+
+```
+docker-compose -f "docker-compose.yaml" up -d --build
+```
+
+This will configure the databse and necessary tables. Also the `adminer` container allows you to have access to an UI to query/modify the database easily.

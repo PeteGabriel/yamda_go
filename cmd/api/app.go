@@ -93,8 +93,8 @@ func (app *Application) writeJSON(w http.ResponseWriter, status int, data envelo
 }
 
 //decode body content into JSON content. If any of the validations fails,
-//an human redable error as well as an error code is returned by this method.
-//Althought the default code is 200, the error code should only be considered in case of error.
+//a human-readable error as well as an error code is returned by this method.
+//Although the default code is 200, the error code should only be considered in case of error.
 func (app *Application) readJSON(w http.ResponseWriter, r *http.Request, dst interface{}) error {
 	//limit size of request body to 1MB
 	maxBytes := 1_048_576
@@ -125,7 +125,7 @@ func (app *Application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 		case strings.HasPrefix(err.Error(), "json: unknown field "):
 			fieldName := strings.TrimPrefix(err.Error(), "json: unknown field ")
 			return fmt.Errorf("body contains unknown key %s", fieldName)
-		// If the request body exceeds 1MB in size the decode will now fail with the
+		// If the request body exceeds 1MB in size decode will now fail with the
 		// error "http: request body too large".
 		case err.Error() == "http: request body too large":
 			return fmt.Errorf("body must not be larger than %d bytes", maxBytes)
@@ -139,7 +139,7 @@ func (app *Application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 	// Call Decode() again, using a pointer to an empty anonymous struct as the
 	// destination. If the request body only contained a single JSON value this will
 	// return an io.EOF error. So if we get anything else, we know that there is
-	// additional data in the request body and we return our own custom error message.
+	// additional data in the request body we return our own custom error message.
 	err := dec.Decode(&struct{}{})
 	if err != io.EOF {
 		return errors.New("body must only contain a single JSON value")
@@ -149,9 +149,9 @@ func (app *Application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 
 func (app *Application) failedValidationResponse(w http.ResponseWriter, errors map[string]string) {
 	problem := models.ErrorProblem{
-		Title:  "input data not valid",
+		Title:  "input validations failed",
 		Status: http.StatusUnprocessableEntity,
-		Detail: ErrContentNotValid,
+		Detail: "content of movie entity is not valid",
 		Errors: errors,
 	}
 	if err := app.writeError(w, http.StatusUnprocessableEntity, problem, nil); err != nil {
@@ -162,11 +162,36 @@ func (app *Application) failedValidationResponse(w http.ResponseWriter, errors m
 
 func (app *Application) badRequestResponse(w http.ResponseWriter, err error) {
 	problem := models.ErrorProblem{
-		Title:  "input data not valid",
+		Title:  "bad request",
 		Status: http.StatusBadRequest,
 		Detail: err.Error(),
 	}
 	if err = app.writeError(w, http.StatusBadRequest, problem, nil); err != nil {
+		app.log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+
+func (app *Application) resourceNotFoundResponse(w http.ResponseWriter, err error) {
+	problem := models.ErrorProblem{
+		Title:  "resource not found",
+		Status: http.StatusNotFound,
+		Detail: err.Error(),
+	}
+	if err = app.writeError(w, http.StatusNotFound, problem, nil); err != nil {
+		app.log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (app *Application) serverErrorResponse(w http.ResponseWriter, err error) {
+	problem := models.ErrorProblem{
+		Title:  "the server encountered a problem and could not process your request",
+		Status: http.StatusInternalServerError,
+		Detail: err.Error(),
+	}
+	if err = app.writeError(w, http.StatusInternalServerError, problem, nil); err != nil {
 		app.log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

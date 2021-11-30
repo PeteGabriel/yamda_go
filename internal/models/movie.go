@@ -32,6 +32,8 @@ func (m *Movie) Validate(v *validator.Validator) {
 	v.Check(validator.Unique(m.Genres), "genres", "must not contain duplicate values")
 }
 
+//ValidateWithId performs the same validations as the functions Validate plus validates
+//if the movie has an ID bigger than 0.
 func (m *Movie) ValidateWithId(v *validator.Validator) {
 	v.Check(m.ID > 0, "ID", "ID must be provided and bigger than 0")
 	m.Validate(v)

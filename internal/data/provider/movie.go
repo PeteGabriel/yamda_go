@@ -2,6 +2,7 @@ package provider
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -10,6 +11,10 @@ import (
 	"yamda_go/internal/models"
 
 	_ "github.com/go-sql-driver/mysql"
+)
+
+var (
+	ErrRecordNotFound = errors.New("record not found")
 )
 
 type IMovieProvider interface {
@@ -42,10 +47,18 @@ func New(set *config.Settings) IMovieProvider {
 }
 
 func (p *MovieProvider) Get(id int64) (*models.Movie, error) {
+	if id < 1 {
+		return nil, ErrRecordNotFound
+	}
 	query := "SELECT * FROM Movie WHERE Id=?"
 	stmt, err := p.db.Prepare(query)
 	if err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
 	}
 	defer stmt.Close()
 
@@ -110,9 +123,15 @@ func (p *MovieProvider) Update(m models.Movie) error {
 }
 
 func (p *MovieProvider) Delete(id int64) error {
+	if id < 1 {
+		return ErrRecordNotFound
+	}
 	query := "DELETE FROM Movie WHERE id=?;"
 	stmtIns, err := p.db.Prepare(query)
-	if err != nil {
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return ErrRecordNotFound
+	default:
 		return err
 	}
 	defer stmtIns.Close()

@@ -20,22 +20,15 @@ type Settings struct {
 
 func New(envPath string) (*Settings, error) {
 	var cfg Settings
-
 	viper.SetConfigFile(envPath)
 	viper.SetConfigType("env")
-
 	viper.AutomaticEnv()
-
-	err := viper.ReadInConfig()
-	if err != nil {
+	if err := viper.ReadInConfig(); err != nil {
 		return nil, errors.Wrap(err, "No env file found")
 	}
-
 	//try to assign read variables into golang struct
-	err = viper.Unmarshal(&cfg)
-	if err != nil {
+	if err := viper.Unmarshal(&cfg); err != nil {
 		return nil, errors.Wrap(err, "Error trying to unmarshal configuration")
 	}
-
 	return &cfg, nil
 }

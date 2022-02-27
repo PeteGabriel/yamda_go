@@ -458,7 +458,7 @@ func TestApplication_UpdateMovieHandler_WithoutSpecifyingID(t *testing.T) {
 	defer teardown()
 
 	content := `{"title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama"]}`
-	req := httptest.NewRequest("PUT", "localhost:8081/v1/movies", strings.NewReader(content))
+	req := httptest.NewRequest("PATCH", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
 	app.UpdateMovieHandler(w, req, nil)
 
@@ -479,7 +479,7 @@ func TestApplication_UpdateMovieHandler_Ok(t *testing.T) {
 	defer teardown()
 
 	content := `{"id": 1, "title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama"]}`
-	req := httptest.NewRequest("PUT", "localhost:8081/v1/movies", strings.NewReader(content))
+	req := httptest.NewRequest("PATCH", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
 	app.UpdateMovieHandler(w, req, nil)
 
@@ -491,6 +491,45 @@ func TestApplication_UpdateMovieHandler_Ok(t *testing.T) {
 
 func TestApplication_UpdateMovieHandler_UnknownField(t *testing.T) {
 	_ = is2.New(t)
+}
+
+/*********************************************************
+** Partial Update
+*********************************************************/
+
+func TestApplication_UpdateMovieHandler_Partially(t *testing.T) {
+	is := is2.New(t)
+	mock := provmock.MovieProviderMock{}
+	mock.UpdateMovieMock = func(m models.Movie) error {
+		return nil
+	}
+	//this simulates what existed previously on the database
+	mock.GetMovieMock = func(id int64) (*models.Movie, error) {
+		return &models.Movie{
+			ID:      id,
+			Title:   "Let's grow old together",
+			Runtime: 100,
+			Year:    2000,
+			Genres:  []string{"romance"},
+		}, nil
+	}
+	teardown := setupTestCase(mock)
+	defer teardown()
+
+	content := `{"runtime": "125 mins", "genres": ["drama"]}`
+	req := httptest.NewRequest("PUT", "localhost:8081/v1/movies/1", strings.NewReader(content))
+	w := httptest.NewRecorder()
+	app.PartialUpdateMovieHandler(w, req, httprouter.Params{
+		httprouter.Param{
+			Key:   "id",
+			Value: "1",
+		}})
+
+	resp := w.Result()
+	body, _ := io.ReadAll(resp.Body)
+	is.Equal(http.StatusOK, resp.StatusCode)
+	expectedBody := `{"movie":{"id":1,"title":"Let's grow old together","runtime":"125 mins","genres":["drama"],"year":2000,"version":0}}`
+	is.Equal(string(body), expectedBody)
 }
 
 /*********************************************************
@@ -543,7 +582,6 @@ func TestApplication_DeleteMovieHandler_MovieNotFound(t *testing.T) {
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
 	is.Equal(http.StatusNotFound, resp.StatusCode)
-
 
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
 	expectedBody := `{"title":"resource not found","status":404,"detail":"movie with id 1 not found"}`

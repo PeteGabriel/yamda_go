@@ -517,7 +517,7 @@ func TestApplication_UpdateMovieHandler_Partially(t *testing.T) {
 	defer teardown()
 
 	content := `{"runtime": "125 mins", "genres": ["drama"]}`
-	req := httptest.NewRequest("PUT", "localhost:8081/v1/movies/1", strings.NewReader(content))
+	req := httptest.NewRequest("PATCH", "localhost:8081/v1/movies/1", strings.NewReader(content))
 	w := httptest.NewRecorder()
 	app.PartialUpdateMovieHandler(w, req, httprouter.Params{
 		httprouter.Param{

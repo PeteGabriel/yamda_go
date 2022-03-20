@@ -13,7 +13,7 @@ func (app *Application) routes() *httprouter.Router {
 	router.Handle(http.MethodPatch, "/v1/movies", app.UpdateMovieHandler)
 	router.Handle(http.MethodDelete, "/v1/movies/:id", app.DeleteMovieHandler)
 
-	router.Handle(http.MethodPut, "/v1/movies/:id", app.PartialUpdateMovieHandler)
+	router.Handle(http.MethodPatch, "/v1/movies/:id", app.PartialUpdateMovieHandler)
 
 	return router
 }

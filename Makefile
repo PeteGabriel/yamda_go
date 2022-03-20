@@ -1,5 +1,6 @@
 run:
-	go build -o bin/main cmd/api/main.go && ./bin/main
+	docker-compose up -d
+	go build -o bin/main ./cmd/api && ./bin/main
 
 test:
 	go test ./...

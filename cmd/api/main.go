@@ -11,22 +11,22 @@ import (
 )
 
 func main() {
-	logger := log.New(os.Stdout, "", log.Ldate | log.Ltime)
+	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	cfg, err := config.New("./debug.env")
 	if err != nil {
 		logger.Fatal(err)
 	}
 	app := &Application{
-		config: cfg,
-		log: logger,
+		config:   cfg,
+		log:      logger,
 		provider: provider.New(cfg),
 	}
 
 	srv := &http.Server{
-		Addr: fmt.Sprintf(":%s", app.config.Port),
-		Handler: app.routes(),
-		IdleTimeout: time.Minute,
-		ReadTimeout: 10 * time.Second,
+		Addr:         fmt.Sprintf(":%s", app.config.Port),
+		Handler:      app.routes(),
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
 	// Start the HTTP server.

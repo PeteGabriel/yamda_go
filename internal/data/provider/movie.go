@@ -62,6 +62,12 @@ func (p *MovieProvider) Get(id int64) (*models.Movie, error) {
 	}
 	defer stmt.Close()
 
+	//drivers like MariaDB have different behaviors
+	row := stmt.QueryRow(id)
+	if (*row).Err() == nil {
+		return nil, ErrRecordNotFound
+	}
+
 	//use it to scan data from row
 	tmp := struct {
 		ID      int64
@@ -72,18 +78,18 @@ func (p *MovieProvider) Get(id int64) (*models.Movie, error) {
 		Version int
 	}{}
 
-	if err = stmt.QueryRow(id).Scan(&tmp.ID, &tmp.Title, &tmp.Runtime, &tmp.Genres, &tmp.Year, &tmp.Version); err != nil {
+	if err = row.Scan(&tmp.ID, &tmp.Title, &tmp.Runtime, &tmp.Genres, &tmp.Year, &tmp.Version); err != nil {
 		return nil, fmt.Errorf("error scanning data from DB into internal struct: %s", err)
 	}
 
 	//build the movie model correctly
 	m := models.Movie{
-		ID:        tmp.ID,
-		Title:     tmp.Title,
-		Runtime:   models.Runtime(tmp.Runtime),
-		Genres:    strings.Split(tmp.Genres, ","),
-		Year:      tmp.Year,
-		Version:   tmp.Version,
+		ID:      tmp.ID,
+		Title:   tmp.Title,
+		Runtime: models.Runtime(tmp.Runtime),
+		Genres:  strings.Split(tmp.Genres, ","),
+		Year:    tmp.Year,
+		Version: tmp.Version,
 		//TODO fix CreatedAt: time.Now(), //todo change to use row field
 	}
 
@@ -109,13 +115,14 @@ func (p *MovieProvider) Insert(m *models.Movie) (*models.Movie, error) {
 }
 
 func (p *MovieProvider) Update(m models.Movie) error {
-	query := "UPDATE Movie  SET title=?, runtime=?, genres=?, year=?, version=? WHERE id=?;"
+	query := "UPDATE Movie  SET title=?, runtime=?, genres=?, year=?, version=? WHERE id=? AND version=?;"
 	stmtIns, err := p.db.Prepare(query)
 	if err != nil {
+
 		return err
 	}
 	defer stmtIns.Close()
-	_, err = stmtIns.Exec(m.Title, m.Runtime, strings.Join(m.Genres, ", "), m.Year, m.Version)
+	_, err = stmtIns.Exec(m.Title, m.Runtime, strings.Join(m.Genres, ", "), m.Year, m.Version, m.ID, m.Version)
 	if err != nil {
 		return err
 	}

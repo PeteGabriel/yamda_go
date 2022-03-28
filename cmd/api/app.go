@@ -172,7 +172,6 @@ func (app *Application) badRequestResponse(w http.ResponseWriter, err error) {
 	}
 }
 
-
 func (app *Application) resourceNotFoundResponse(w http.ResponseWriter, err error) {
 	problem := models.ErrorProblem{
 		Title:  "resource not found",
@@ -180,6 +179,18 @@ func (app *Application) resourceNotFoundResponse(w http.ResponseWriter, err erro
 		Detail: err.Error(),
 	}
 	if err = app.writeError(w, http.StatusNotFound, problem, nil); err != nil {
+		app.log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (app *Application) resourceEditConflictResponse(w http.ResponseWriter) {
+	problem := models.ErrorProblem{
+		Title:  "unable to update the record",
+		Status: http.StatusConflict,
+		Detail: fmt.Sprintf("unable to update the record due to an edit conflict, please try again"),
+	}
+	if err := app.writeError(w, http.StatusConflict, problem, nil); err != nil {
 		app.log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

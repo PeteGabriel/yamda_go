@@ -153,7 +153,12 @@ func (app *Application) PartialUpdateMovieHandler(w http.ResponseWriter, r *http
 
 	err = app.provider.Update(*movie)
 	if err != nil {
-		app.serverErrorResponse(w, err)
+		switch {
+		case errors.Is(err, provider.ErrEditConflict):
+			app.resourceEditConflictResponse(w)
+		default:
+			app.serverErrorResponse(w, err)
+		}
 		return
 	}
 

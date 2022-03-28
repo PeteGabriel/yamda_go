@@ -15,6 +15,7 @@ import (
 
 var (
 	ErrRecordNotFound = errors.New("record not found")
+	ErrEditConflict   = errors.New("edit conflict")
 )
 
 type IMovieProvider interface {
@@ -64,33 +65,34 @@ func (p *MovieProvider) Get(id int64) (*models.Movie, error) {
 
 	//drivers like MariaDB have different behaviors
 	row := stmt.QueryRow(id)
-	if (*row).Err() == nil {
+	if (*row).Err() != nil {
 		return nil, ErrRecordNotFound
 	}
 
 	//use it to scan data from row
 	tmp := struct {
-		ID      int64
-		Title   string
-		Runtime int32
-		Genres  string
-		Year    int32
-		Version int
+		ID       int64
+		CreateAt []uint8
+		Title    string
+		Year     int32
+		Runtime  int32
+		Genres   string
+		Version  int
 	}{}
 
-	if err = row.Scan(&tmp.ID, &tmp.Title, &tmp.Runtime, &tmp.Genres, &tmp.Year, &tmp.Version); err != nil {
+	if err = row.Scan(&tmp.ID, &tmp.CreateAt, &tmp.Title, &tmp.Year, &tmp.Runtime, &tmp.Genres, &tmp.Version); err != nil {
 		return nil, fmt.Errorf("error scanning data from DB into internal struct: %s", err)
 	}
 
 	//build the movie model correctly
 	m := models.Movie{
-		ID:      tmp.ID,
-		Title:   tmp.Title,
-		Runtime: models.Runtime(tmp.Runtime),
-		Genres:  strings.Split(tmp.Genres, ","),
-		Year:    tmp.Year,
-		Version: tmp.Version,
-		//TODO fix CreatedAt: time.Now(), //todo change to use row field
+		ID:        tmp.ID,
+		Title:     tmp.Title,
+		Runtime:   models.Runtime(tmp.Runtime),
+		Genres:    strings.Split(tmp.Genres, ","),
+		Year:      tmp.Year,
+		Version:   tmp.Version,
+		CreatedAt: tmp.CreateAt,
 	}
 
 	return &m, nil
@@ -118,11 +120,10 @@ func (p *MovieProvider) Update(m models.Movie) error {
 	query := "UPDATE Movie  SET title=?, runtime=?, genres=?, year=?, version=? WHERE id=? AND version=?;"
 	stmtIns, err := p.db.Prepare(query)
 	if err != nil {
-
 		return err
 	}
 	defer stmtIns.Close()
-	_, err = stmtIns.Exec(m.Title, m.Runtime, strings.Join(m.Genres, ", "), m.Year, m.Version, m.ID, m.Version)
+	_, err = stmtIns.Exec(m.Title, m.Runtime, strings.Join(m.Genres, ", "), m.Year, m.Version+1, m.ID, m.Version)
 	if err != nil {
 		return err
 	}
@@ -133,18 +134,17 @@ func (p *MovieProvider) Delete(id int64) error {
 	if id < 1 {
 		return ErrRecordNotFound
 	}
-	query := "DELETE FROM Movie WHERE id=?;"
-	stmtIns, err := p.db.Prepare(query)
-	switch {
-	case errors.Is(err, sql.ErrNoRows):
-		return ErrRecordNotFound
-	default:
-		return err
-	}
-	defer stmtIns.Close()
-	_, err = stmtIns.Exec(id)
+	query := "DELETE FROM Movie WHERE id = ?"
+	res, err := p.db.Exec(query, id)
 	if err != nil {
 		return err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected != 1 {
+		return ErrRecordNotFound
 	}
 	return nil
 }

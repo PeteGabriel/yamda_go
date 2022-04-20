@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -51,7 +52,12 @@ func (p *MovieProvider) Get(id int64) (*models.Movie, error) {
 	if id < 1 {
 		return nil, ErrRecordNotFound
 	}
-	query := "SELECT * FROM Movie WHERE Id=?"
+
+	//apply timeout of 3sec to query context
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := "SELECT sleep(10), Id, created_at, title, year, runtime, genres, version FROM Movie WHERE Id=?"
 	stmt, err := p.db.Prepare(query)
 	if err != nil {
 		switch {
@@ -64,13 +70,14 @@ func (p *MovieProvider) Get(id int64) (*models.Movie, error) {
 	defer stmt.Close()
 
 	//drivers like MariaDB have different behaviors
-	row := stmt.QueryRow(id)
+	row := stmt.QueryRowContext(ctx, id)
 	if (*row).Err() != nil {
 		return nil, ErrRecordNotFound
 	}
 
 	//use it to scan data from row
 	tmp := struct {
+		sleep    []byte
 		ID       int64
 		CreateAt []uint8
 		Title    string
@@ -80,7 +87,7 @@ func (p *MovieProvider) Get(id int64) (*models.Movie, error) {
 		Version  int
 	}{}
 
-	if err = row.Scan(&tmp.ID, &tmp.CreateAt, &tmp.Title, &tmp.Year, &tmp.Runtime, &tmp.Genres, &tmp.Version); err != nil {
+	if err = row.Scan(&tmp.sleep, &tmp.ID, &tmp.CreateAt, &tmp.Title, &tmp.Year, &tmp.Runtime, &tmp.Genres, &tmp.Version); err != nil {
 		return nil, fmt.Errorf("error scanning data from DB into internal struct: %s", err)
 	}
 

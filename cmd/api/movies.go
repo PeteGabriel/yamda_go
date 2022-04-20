@@ -12,6 +12,11 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+/**
+* POST /v1/movies -> 201 CREATED with JSON content
+*
+* LOCATION header contains the uri to the newly created resource.
+**/
 func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	//how we expect data from outside
 	var input struct {
@@ -52,6 +57,9 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+/**
+* GET /v1/movies/:id -> 200 OK with JSON content
+**/
 func (app *Application) GetMovieHandler(w http.ResponseWriter, _ *http.Request, p httprouter.Params) {
 	num, err := app.ParseId(p)
 	if err != nil {
@@ -76,6 +84,9 @@ func (app *Application) GetMovieHandler(w http.ResponseWriter, _ *http.Request, 
 	}
 }
 
+/**
+* PATCH /v1/movies -> 200 OK with JSON content
+**/
 func (app *Application) UpdateMovieHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	var m struct {
 		ID      int64          `json:"id"`
@@ -106,6 +117,9 @@ func (app *Application) UpdateMovieHandler(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusNoContent)
 }
 
+/**
+* PATCH /v1/movies/:id -> 200 OK with JSON content
+**/
 func (app *Application) PartialUpdateMovieHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	id, err := app.ParseId(p)
 	if err != nil {
@@ -168,6 +182,9 @@ func (app *Application) PartialUpdateMovieHandler(w http.ResponseWriter, r *http
 	}
 }
 
+/**
+* DELETE /v1/movies/:id -> 200 OK with JSON content
+**/
 func (app *Application) DeleteMovieHandler(w http.ResponseWriter, _ *http.Request, p httprouter.Params) {
 	num, err := app.ParseId(p)
 	if err != nil {

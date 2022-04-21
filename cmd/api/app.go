@@ -188,7 +188,7 @@ func (app *Application) resourceEditConflictResponse(w http.ResponseWriter) {
 	problem := models.ErrorProblem{
 		Title:  "unable to update the record",
 		Status: http.StatusConflict,
-		Detail: fmt.Sprintf("unable to update the record due to an edit conflict, please try again"),
+		Detail: fmt.Sprint("unable to update the record due to an edit conflict, please try again"),
 	}
 	if err := app.writeError(w, http.StatusConflict, problem, nil); err != nil {
 		app.log.Println(err)

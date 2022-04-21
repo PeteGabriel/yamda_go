@@ -7,5 +7,20 @@ CREATE TABLE IF NOT EXISTS Movie (
     `genres` TINYTEXT NOT NULL,
     `version` int NOT NULL DEFAULT 1,
     PRIMARY KEY (`Id`),
-    UNIQUE KEY `ID_UNIQUE` (`Id`)
+    UNIQUE KEY `ID_UNIQUE` (`Id`),
+    FULLTEXT(`genres`)
     );
+
+ALTER TABLE Movie ADD CONSTRAINT movies_runtime_check CHECK (runtime >= 0);
+
+INSERT INTO Movie (title, year, runtime, genres) VALUES ("Gothika", 2003, 125, "Horror,Thriller");
+INSERT INTO Movie (title, year, runtime, genres) VALUES ("Broken Embraces", 2009, 135, "Drama,Romance,Thriller");
+INSERT INTO Movie (title, year, runtime, genres) VALUES ("A Christmas Prince: The Royal Baby", 2019, 155, "Romance,Family");
+INSERT INTO Movie (title, year, runtime, genres) VALUES ("Deconstructing Harry", 1997, 115, "Comedy,Drama");
+INSERT INTO Movie (title, year, runtime, genres) VALUES ("Tie Me Up! Tie Me Down!", 1989, 203, "Crime,Comedy,Drama");
+INSERT INTO Movie (title, year, runtime, genres) VALUES ("Grudge Match", 2013, 115, "Comedy");
+INSERT INTO Movie (title, year, runtime, genres) VALUES ("Halloween II", 1981, 122, "Horror,Thriller");
+INSERT INTO Movie (title, year, runtime, genres) VALUES ("Bill & Ted Face the Music", 2020, 175, "Science Fiction,Adventure,Comedy");
+INSERT INTO Movie (title, year, runtime, genres) VALUES ("From Dusk Till Dawn", 1996, 145, "Action,Thriller,Crime");
+INSERT INTO Movie (title, year, runtime, genres) VALUES ("The Knight Before Christmas", 1997, 115, "Comedy,Romance");
+INSERT INTO Movie (title, year, runtime, genres) VALUES ("The Ghost and the Darkness", 1996, 165, "Adventure");

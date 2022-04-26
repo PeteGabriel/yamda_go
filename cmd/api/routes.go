@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/julienschmidt/httprouter"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 func (app *Application) routes() *httprouter.Router {
@@ -14,6 +15,8 @@ func (app *Application) routes() *httprouter.Router {
 	router.Handle(http.MethodDelete, "/v1/movies/:id", app.DeleteMovieHandler)
 
 	router.Handle(http.MethodPatch, "/v1/movies/:id", app.PartialUpdateMovieHandler)
+
+	router.HandlerFunc(http.MethodGet, "/v1/movies", app.ListMoviesHandler)
 
 	return router
 }

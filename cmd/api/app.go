@@ -151,7 +151,6 @@ func (app *Application) failedValidationResponse(w http.ResponseWriter, errors m
 	problem := models.ErrorProblem{
 		Title:  "input validations failed",
 		Status: http.StatusUnprocessableEntity,
-		Detail: "content of movie entity is not valid",
 		Errors: errors,
 	}
 	if err := app.writeError(w, http.StatusUnprocessableEntity, problem, nil); err != nil {

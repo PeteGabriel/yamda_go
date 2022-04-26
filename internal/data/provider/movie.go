@@ -21,6 +21,7 @@ var (
 
 type IMovieProvider interface {
 	Get(id int64) (*models.Movie, error)
+	GetAll() ([]*models.Movie, error)
 	Insert(*models.Movie) (*models.Movie, error)
 	Update(models.Movie) error
 	Delete(id int64) error
@@ -154,4 +155,54 @@ func (p *MovieProvider) Delete(id int64) error {
 		return ErrRecordNotFound
 	}
 	return nil
+}
+
+func (p *MovieProvider) GetAll() ([]*models.Movie, error) {
+	query := "SELECT Id, created_at, title, year, runtime, genres, version FROM Movie ORDER BY id;"
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	rows, err := p.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var movies []*models.Movie
+
+	for rows.Next() {
+
+		m := struct {
+			sleep     []byte
+			ID        int64
+			CreatedAt []uint8
+			Title     string
+			Year      int32
+			Runtime   int32
+			Genres    string
+			Version   int
+		}{}
+		if err = rows.Scan(&m.ID, &m.CreatedAt, &m.Title, &m.Year, &m.Runtime, &m.Genres, &m.Version); err != nil {
+			return nil, fmt.Errorf("error scanning data from DB into internal struct: %s", err)
+		}
+
+		//quick solution. We'll check it at a later stage
+		movie := models.Movie{
+			ID:        m.ID,
+			Title:     m.Title,
+			Runtime:   models.Runtime(m.Runtime),
+			Genres:    strings.Split(m.Genres, ","),
+			Year:      m.Year,
+			Version:   m.Version,
+			CreatedAt: m.CreatedAt,
+		}
+		movies = append(movies, &movie)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return movies, nil
 }

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 	"yamda_go/internal/config"
+	"yamda_go/internal/data"
 	"yamda_go/internal/models"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -20,11 +21,11 @@ var (
 )
 
 type IMovieProvider interface {
-	Get(id int64) (*models.Movie, error)
-	GetAll() ([]*models.Movie, error)
+	Get(int64) (*models.Movie, error)
+	GetAll(data.Search) ([]*models.Movie, error)
 	Insert(*models.Movie) (*models.Movie, error)
 	Update(models.Movie) error
-	Delete(id int64) error
+	Delete(int64) error
 }
 
 type MovieProvider struct {
@@ -157,19 +158,26 @@ func (p *MovieProvider) Delete(id int64) error {
 	return nil
 }
 
-func (p *MovieProvider) GetAll() ([]*models.Movie, error) {
-	query := "SELECT Id, created_at, title, year, runtime, genres, version FROM Movie ORDER BY id;"
+func (p *MovieProvider) GetAll(params data.Search) ([]*models.Movie, error) {
+	query := `
+      SELECT Id, created_at, title, year, runtime, genres, version
+      FROM Movie
+      WHERE (LOWER(title) like LOWER(?)) AND (genres LIKE ?)
+      ORDER BY id;`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	rows, err := p.db.QueryContext(ctx, query)
+	//format params to allow a contains inside query
+	title, genres := "%"+params.Title+"%", "%"+params.Genres+"%"
+	rows, err := p.db.QueryContext(ctx, query, title, genres)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var movies []*models.Movie
+	//goland:noinspection GoPreferNilSlice
+	movies := []*models.Movie{}
 
 	for rows.Next() {
 
@@ -203,6 +211,5 @@ func (p *MovieProvider) GetAll() ([]*models.Movie, error) {
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
-
 	return movies, nil
 }

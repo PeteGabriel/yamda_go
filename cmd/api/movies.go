@@ -212,33 +212,27 @@ func (app *Application) DeleteMovieHandler(w http.ResponseWriter, _ *http.Reques
 * GET /v1/movies -> 200 OK with JSON content
 **/
 func (app *Application) ListMoviesHandler(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		Title   string
-		Genres  []string
-		Filters data.Filter
-	}
 
 	v := validator.New()
-
 	qs := r.URL.Query()
 
-	input.Title = app.readString(qs, "title", "")
-	input.Genres = app.readCSV(qs, "genres", []string{})
-
-	input.Filters.Page = app.readInt(qs, "page", 1, v)           //default page is 1
-	input.Filters.PageSize = app.readInt(qs, "page_size", 20, v) //default size is 20
-	input.Filters.Sort = app.readString(qs, "sort", "id")        //default sort if by 'id' field
-
-	// this endpoint supports the following sort parameters
-	input.Filters.SortSafelist = []string{"id", "title", "year", "runtime", "-id", "-title", "-year", "-runtime"}
+	input := data.Search{
+		Title:  app.readString(qs, "title", ""),
+		Genres: app.readString(qs, "genres", ""),
+		Filters: data.Filter{
+			Page:         app.readInt(qs, "page", 1, v),       //default page is 1
+			PageSize:     app.readInt(qs, "page_size", 20, v), //default size is 20
+			Sort:         app.readString(qs, "sort", "id"),    //default sort if by 'id' field
+			SortSafelist: []string{"id", "title", "year", "runtime", "-id", "-title", "-year", "-runtime"},
+		},
+	}
 
 	if input.Filters.Validate(v); !v.IsValid() {
 		app.failedValidationResponse(w, v.Errors)
 		return
 	}
 
-	//TODO apply filters
-	movies, err := app.provider.GetAll()
+	movies, err := app.provider.GetAll(input)
 	if err != nil {
 		app.serverErrorResponse(w, err)
 	}

@@ -2,6 +2,12 @@ package data
 
 import "yamda_go/internal/validator"
 
+type Search struct {
+	Title   string
+	Genres  string
+	Filters Filter
+}
+
 type Filter struct {
 	Page         int
 	PageSize     int

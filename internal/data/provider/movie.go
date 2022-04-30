@@ -159,11 +159,11 @@ func (p *MovieProvider) Delete(id int64) error {
 }
 
 func (p *MovieProvider) GetAll(params data.Search) ([]*models.Movie, error) {
-	query := `
+	query := fmt.Sprintf(`
       SELECT Id, created_at, title, year, runtime, genres, version
       FROM Movie
       WHERE (LOWER(title) like LOWER(?)) AND (genres LIKE ?)
-      ORDER BY id;`
+      ORDER BY %s %s, id ASC;`, params.Filters.GetSortColumn(), params.Filters.GetSortDirection())
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

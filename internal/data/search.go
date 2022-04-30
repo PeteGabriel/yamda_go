@@ -1,6 +1,9 @@
 package data
 
-import "yamda_go/internal/validator"
+import (
+	"strings"
+	"yamda_go/internal/validator"
+)
 
 type Search struct {
 	Title   string
@@ -24,4 +27,23 @@ func (f Filter) Validate(v *validator.Validator) {
 
 	// Check that the sort parameter matches a value in the safelist.
 	v.Check(validator.In(f.Sort, f.SortSafelist...), "sort", "invalid sort value")
+}
+
+//GetSortColumn returns which column should be used to sort results.
+func (f Filter) GetSortColumn() string {
+	for _, s := range f.SortSafelist {
+		if f.Sort == s {
+			return strings.TrimPrefix(f.Sort, "-")
+		}
+	}
+	//should never happen since we have a validator routine for these cases.
+	panic("unsafe sort parameter: " + f.Sort)
+}
+
+//GetSortDirection returns which direction (ASC, DESC) should be used while sorting results.
+func (f Filter) GetSortDirection() string {
+	if strings.HasPrefix(f.Sort, "-") {
+		return "DESC"
+	}
+	return "ASC"
 }

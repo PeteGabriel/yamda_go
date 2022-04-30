@@ -47,3 +47,11 @@ func (f Filter) GetSortDirection() string {
 	}
 	return "ASC"
 }
+
+func (f Filter) GetPageSize() int {
+	return f.PageSize
+}
+
+func (f Filter) GetPageOffset() int {
+	return (f.Page - 1) * f.PageSize
+}

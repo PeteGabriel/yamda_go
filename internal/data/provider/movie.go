@@ -10,7 +10,7 @@ import (
 	"time"
 	"yamda_go/internal/config"
 	"yamda_go/internal/data"
-	"yamda_go/internal/models"
+	models "yamda_go/internal/models"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -22,7 +22,7 @@ var (
 
 type IMovieProvider interface {
 	Get(int64) (*models.Movie, error)
-	GetAll(data.Search) ([]*models.Movie, error)
+	GetAll(data.Search) ([]*models.Movie, *models.Metadata, error)
 	Insert(*models.Movie) (*models.Movie, error)
 	Update(models.Movie) error
 	Delete(int64) error
@@ -158,12 +158,19 @@ func (p *MovieProvider) Delete(id int64) error {
 	return nil
 }
 
-func (p *MovieProvider) GetAll(params data.Search) ([]*models.Movie, error) {
-	query := fmt.Sprintf(`
-      SELECT Id, created_at, title, year, runtime, genres, version
+func (p *MovieProvider) GetAll(params data.Search) ([]*models.Movie, *models.Metadata, error) {
+	query := `
+      SELECT COUNT(*) OVER(), Id, created_at, title, year, runtime, genres, version
       FROM Movie
       WHERE (LOWER(title) like LOWER(?)) AND (genres LIKE ?)
-      ORDER BY %s %s, id ASC;`, params.Filters.GetSortColumn(), params.Filters.GetSortDirection())
+      ORDER BY %s %s, id ASC
+      LIMIT %d OFFSET %d;`
+
+	query = fmt.Sprintf(query,
+		params.Filters.GetSortColumn(),
+		params.Filters.GetSortDirection(),
+		params.Filters.GetPageSize(),
+		params.Filters.GetPageOffset())
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -172,17 +179,17 @@ func (p *MovieProvider) GetAll(params data.Search) ([]*models.Movie, error) {
 	title, genres := "%"+params.Title+"%", "%"+params.Genres+"%"
 	rows, err := p.db.QueryContext(ctx, query, title, genres)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer rows.Close()
 
 	//goland:noinspection GoPreferNilSlice
 	movies := []*models.Movie{}
 
+	totalRecords := 0
 	for rows.Next() {
 
 		m := struct {
-			sleep     []byte
 			ID        int64
 			CreatedAt []uint8
 			Title     string
@@ -191,8 +198,16 @@ func (p *MovieProvider) GetAll(params data.Search) ([]*models.Movie, error) {
 			Genres    string
 			Version   int
 		}{}
-		if err = rows.Scan(&m.ID, &m.CreatedAt, &m.Title, &m.Year, &m.Runtime, &m.Genres, &m.Version); err != nil {
-			return nil, fmt.Errorf("error scanning data from DB into internal struct: %s", err)
+		if err = rows.Scan(
+			&totalRecords,
+			&m.ID,
+			&m.CreatedAt,
+			&m.Title,
+			&m.Year,
+			&m.Runtime,
+			&m.Genres,
+			&m.Version); err != nil {
+			return nil, nil, fmt.Errorf("error scanning data from DB into internal struct: %s", err)
 		}
 
 		//quick solution. We'll check it at a later stage
@@ -209,7 +224,9 @@ func (p *MovieProvider) GetAll(params data.Search) ([]*models.Movie, error) {
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return movies, nil
+
+	meta := models.New(totalRecords, params.Filters.Page, params.Filters.GetPageSize())
+	return movies, &meta, nil
 }

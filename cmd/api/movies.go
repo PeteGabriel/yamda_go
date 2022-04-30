@@ -232,12 +232,12 @@ func (app *Application) ListMoviesHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	movies, err := app.provider.GetAll(input)
+	movies, meta, err := app.provider.GetAll(input)
 	if err != nil {
 		app.serverErrorResponse(w, err)
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"movies": movies}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"metadata": meta, "movies": movies}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, err)
 	}

@@ -178,7 +178,7 @@ func TestApplication_CreateMovieHandler_TitleIsEmptyOrLongerThan500Bytes(t *test
 
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
-	expectedBody := `{"title":"input validations failed","status":422,"detail":"content of movie entity is not valid","errors":{"title":"must not be empty or more than 500 bytes long"}}`
+	expectedBody := `{"title":"input validations failed","status":422,"detail":"","errors":{"title":"must not be empty or more than 500 bytes long"}}`
 	is.Equal(expectedBody, string(body))
 
 	content = `{"title": "tbXgdREwqSjfnDiDHUDadZPWHXPxFrzquhjpNLBjMXBnydPiwfXPxFrzquhjpNLBjMXBnydPiwfXPxFrzquhjpNLBjMXBnydPiwfXPxFrzquhjpNLBjMXBnydPiwfyuMhBTdaFRHJGDVLFkwCTvTGRcEFqNtkfhUTiAnYzQRXaRtaRrGKaJSbncPpjDAZBWtcCkWzZvJDaMgRzYBQNSpGShDhLmfUcrCRMvjpxZRSNWtqUyVHuQXVwvXKdbtzkYaWGiLgeBxNYwZgMjLtuMWbedRAvjYSWNvtzBzDAvShPWixdaFvWiMmhpVzbmZQQWEJJRaxwDBvYMDSKDWqjreFQfEBUaKrmBufecwWmEcjWmzBtKckqRddWMKacRHdNMutCBtjjTZbkbbhGvpFetxpDXZcHQBBHiWVZEHGDawmJwAntwQHtErEFvbANcrbUJhanuykDhYktjrdkuFRmQVdPFnWcRmrbKpkLtaNCcubDEuyRQYarRyjSQXWFBXbQELUPJRLBMgmNdwUdcmAXaTkwiyzdAdURrhcSCScUCZNzHGTwjWmwSpNAvRAAkuLfb", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama"]}`
@@ -188,7 +188,7 @@ func TestApplication_CreateMovieHandler_TitleIsEmptyOrLongerThan500Bytes(t *test
 	resp = w.Result()
 	body, _ = io.ReadAll(resp.Body)
 
-	expectedBody = `{"title":"input validations failed","status":422,"detail":"content of movie entity is not valid","errors":{"title":"must not be empty or more than 500 bytes long"}}`
+	expectedBody = `{"title":"input validations failed","status":422,"detail":"","errors":{"title":"must not be empty or more than 500 bytes long"}}`
 	is.Equal(expectedBody, string(body))
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
@@ -213,7 +213,7 @@ func TestApplication_CreateMovieHandler_YearIsEmptyOrHasInvalidRange(t *testing.
 
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
-	expectedBody := `{"title":"input validations failed","status":422,"detail":"content of movie entity is not valid","errors":{"year":"must be greater than 1888"}}`
+	expectedBody := `{"title":"input validations failed","status":422,"detail":"","errors":{"year":"must be greater than 1888"}}`
 	is.Equal(expectedBody, string(body))
 
 	content = `{"title": "Casablanca", "runtime": "125 mins", "genres": ["historical","drama"], "year": 2030}`
@@ -224,7 +224,7 @@ func TestApplication_CreateMovieHandler_YearIsEmptyOrHasInvalidRange(t *testing.
 	body, _ = io.ReadAll(resp.Body)
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
-	expectedBody = `{"title":"input validations failed","status":422,"detail":"content of movie entity is not valid","errors":{"year":"must not be in the future"}}`
+	expectedBody = `{"title":"input validations failed","status":422,"detail":"","errors":{"year":"must not be in the future"}}`
 	is.Equal(expectedBody, string(body))
 }
 
@@ -247,7 +247,7 @@ func TestApplication_CreateMovieHandler_RuntimeIsNegativeInteger(t *testing.T) {
 
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
-	expectedBody := `{"title":"input validations failed","status":422,"detail":"content of movie entity is not valid","errors":{"runtime":"must be a positive integer"}}`
+	expectedBody := `{"title":"input validations failed","status":422,"detail":"","errors":{"runtime":"must be a positive integer"}}`
 	is.Equal(expectedBody, string(body))
 }
 
@@ -270,7 +270,7 @@ func TestApplication_CreateMovieHandler_GenresIsEmpty(t *testing.T) {
 
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
-	expectedBody := `{"title":"input validations failed","status":422,"detail":"content of movie entity is not valid","errors":{"genres":"must contain at least 1 genre"}}`
+	expectedBody := `{"title":"input validations failed","status":422,"detail":"","errors":{"genres":"must contain at least 1 genre"}}`
 	is.Equal(expectedBody, string(body))
 }
 
@@ -293,7 +293,7 @@ func TestApplication_CreateMovieHandler_GenresMustNotExceed5(t *testing.T) {
 
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
-	expectedBody := `{"title":"input validations failed","status":422,"detail":"content of movie entity is not valid","errors":{"genres":"must not contain more than 5 genres"}}`
+	expectedBody := `{"title":"input validations failed","status":422,"detail":"","errors":{"genres":"must not contain more than 5 genres"}}`
 	is.Equal(expectedBody, string(body))
 }
 
@@ -316,7 +316,7 @@ func TestApplication_CreateMovieHandler_GenresMustBeUnique(t *testing.T) {
 
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
 	is.Equal("application/problem+json", resp.Header.Get("Content-Type"))
-	expectedBody := `{"title":"input validations failed","status":422,"detail":"content of movie entity is not valid","errors":{"genres":"must not contain duplicate values"}}`
+	expectedBody := `{"title":"input validations failed","status":422,"detail":"","errors":{"genres":"must not contain duplicate values"}}`
 	is.Equal(expectedBody, string(body))
 }
 
@@ -465,7 +465,7 @@ func TestApplication_UpdateMovieHandler_WithoutSpecifyingID(t *testing.T) {
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
-	expectedBody := `{"title":"input validations failed","status":422,"detail":"content of movie entity is not valid","errors":{"ID":"ID must be provided and bigger than 0"}}`
+	expectedBody := `{"title":"input validations failed","status":422,"detail":"","errors":{"ID":"ID must be provided and bigger than 0"}}`
 	is.Equal(string(body), expectedBody)
 }
 

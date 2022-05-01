@@ -55,8 +55,8 @@ func (p *MovieProvider) Get(id int64) (*models.Movie, error) {
 		return nil, ErrRecordNotFound
 	}
 
-	//apply timeout of 3sec to query context
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	//TODO move timeout to env vars
+	ctx, cancel := context.WithTimeout(context.Background(), 9*time.Second)
 	defer cancel()
 
 	query := "SELECT sleep(10), Id, created_at, title, year, runtime, genres, version FROM Movie WHERE Id=?"

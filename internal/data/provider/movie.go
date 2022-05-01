@@ -29,7 +29,8 @@ type IMovieProvider interface {
 }
 
 type MovieProvider struct {
-	db *sql.DB
+	db      *sql.DB
+	configs *config.Settings
 }
 
 func New(set *config.Settings) IMovieProvider {
@@ -46,7 +47,8 @@ func New(set *config.Settings) IMovieProvider {
 	db.SetMaxOpenConns(set.ConnMaxOpen)
 	db.SetMaxIdleConns(set.ConnMaxIdle)
 	return &MovieProvider{
-		db: db,
+		db:      db,
+		configs: set,
 	}
 }
 
@@ -55,8 +57,7 @@ func (p *MovieProvider) Get(id int64) (*models.Movie, error) {
 		return nil, ErrRecordNotFound
 	}
 
-	//TODO move timeout to env vars
-	ctx, cancel := context.WithTimeout(context.Background(), 9*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(p.configs.HttpReqTimeout)*time.Second)
 	defer cancel()
 
 	query := "SELECT sleep(10), Id, created_at, title, year, runtime, genres, version FROM Movie WHERE Id=?"

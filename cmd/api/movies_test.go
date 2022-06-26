@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -11,6 +10,7 @@ import (
 	"testing"
 	"yamda_go/internal/config"
 	"yamda_go/internal/data/provider"
+	"yamda_go/internal/jsonlog"
 	provmock "yamda_go/internal/mocks/data/provider"
 	"yamda_go/internal/models"
 
@@ -21,10 +21,10 @@ import (
 var app *Application = nil
 
 func setupTestCase(p provmock.MovieProviderMock) func() {
-	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
 	cfg, _ := config.New("./../../debug.env")
 	app = &Application{
-		log:      logger,
+		logger:   logger,
 		config:   cfg,
 		provider: p,
 	}

@@ -53,7 +53,7 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 	headers := make(http.Header)
 	headers.Set("Location", fmt.Sprintf("/v1/movies/%d", movie.ID))
 	if err := app.writeJSON(w, http.StatusCreated, envelope{"movie": movie}, headers); err != nil {
-		app.log.Println(err)
+		app.logger.PrintError(err, nil)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -80,7 +80,7 @@ func (app *Application) GetMovieHandler(w http.ResponseWriter, _ *http.Request, 
 		}
 	}
 	if err := app.writeJSON(w, http.StatusOK, envelope{"movie": movie}, nil); err != nil {
-		app.log.Println(err)
+		app.logger.PrintError(err, nil)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -199,7 +199,7 @@ func (app *Application) DeleteMovieHandler(w http.ResponseWriter, _ *http.Reques
 			app.resourceNotFoundResponse(w, fmt.Errorf("movie with id %d not found", num))
 			return
 		default:
-			app.log.Println(err)
+			app.logger.PrintError(err, nil)
 			app.serverErrorResponse(w, err)
 			return
 		}

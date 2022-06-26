@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"yamda_go/internal/config"
 	"yamda_go/internal/data/provider"
+	"yamda_go/internal/jsonlog"
 	"yamda_go/internal/models"
 
 	"github.com/julienschmidt/httprouter"
@@ -25,9 +25,9 @@ const (
 //Application type contains all dependencies for the top layer of
 //the API.
 type Application struct {
-	log      *log.Logger
 	config   *config.Settings
 	provider provider.IMovieProvider
+	logger   *jsonlog.Logger
 }
 
 //ParseId parses the parameter id present in a given
@@ -59,7 +59,7 @@ type envelope map[string]interface{}
 func (app *Application) writeError(w http.ResponseWriter, status int, data models.ErrorProblem, headers http.Header) error {
 	resp, err := json.Marshal(data)
 	if err != nil {
-		app.log.Println(err)
+		app.logger.PrintError(err, nil)
 		return errors.New("an error happened at the server level")
 	}
 	//apply all values to respective header keys
@@ -79,7 +79,7 @@ func (app *Application) writeError(w http.ResponseWriter, status int, data model
 func (app *Application) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
 	resp, err := json.Marshal(data)
 	if err != nil {
-		app.log.Println(err)
+		app.logger.PrintError(err, nil)
 		return errors.New("an error happened at the server level")
 	}
 	//apply all values to respective header keys
@@ -154,7 +154,7 @@ func (app *Application) failedValidationResponse(w http.ResponseWriter, errors m
 		Errors: errors,
 	}
 	if err := app.writeError(w, http.StatusUnprocessableEntity, problem, nil); err != nil {
-		app.log.Println(err)
+		app.logger.PrintError(err, nil)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -166,7 +166,7 @@ func (app *Application) badRequestResponse(w http.ResponseWriter, err error) {
 		Detail: err.Error(),
 	}
 	if err = app.writeError(w, http.StatusBadRequest, problem, nil); err != nil {
-		app.log.Println(err)
+		app.logger.PrintError(err, nil)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -178,7 +178,7 @@ func (app *Application) resourceNotFoundResponse(w http.ResponseWriter, err erro
 		Detail: err.Error(),
 	}
 	if err = app.writeError(w, http.StatusNotFound, problem, nil); err != nil {
-		app.log.Println(err)
+		app.logger.PrintError(err, nil)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -190,7 +190,7 @@ func (app *Application) resourceEditConflictResponse(w http.ResponseWriter) {
 		Detail: fmt.Sprint("unable to update the record due to an edit conflict, please try again"),
 	}
 	if err := app.writeError(w, http.StatusConflict, problem, nil); err != nil {
-		app.log.Println(err)
+		app.logger.PrintError(err, nil)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -202,7 +202,7 @@ func (app *Application) serverErrorResponse(w http.ResponseWriter, err error) {
 		Detail: err.Error(),
 	}
 	if err = app.writeError(w, http.StatusInternalServerError, problem, nil); err != nil {
-		app.log.Println(err)
+		app.logger.PrintError(err, nil)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

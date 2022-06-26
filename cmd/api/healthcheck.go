@@ -11,11 +11,11 @@ func (app *Application) HealthCheckHandler(w http.ResponseWriter, _ *http.Reques
 		"status": "available",
 		"system_info": map[string]string{
 			"environment": app.config.Env,
-			"version": version,
+			"version":     version,
 		},
 	}
 	if err := app.writeJSON(w, http.StatusOK, data, nil); err != nil {
-		app.log.Println(err)
+		app.logger.PrintError(err, nil)
 		http.Error(w, "an error happened at the server level", http.StatusInternalServerError)
 	}
 }

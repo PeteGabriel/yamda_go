@@ -8,17 +8,18 @@ import (
 	"time"
 	"yamda_go/internal/config"
 	"yamda_go/internal/data/provider"
+	"yamda_go/internal/jsonlog"
 )
 
 func main() {
-	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
 	cfg, err := config.New("./debug.env")
 	if err != nil {
-		logger.Fatal(err)
+		logger.PrintFatal(err, nil)
 	}
 	app := &Application{
 		config:   cfg,
-		log:      logger,
+		logger:   logger,
 		provider: provider.New(cfg),
 	}
 
@@ -28,9 +29,16 @@ func main() {
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
+		//The "" and 0 indicate that the
+		// log.Logger instance should not use a prefix or any flags.
+		ErrorLog: log.New(logger, "", 0),
 	}
 	// Start the HTTP server.
-	logger.Printf("starting %s server on %s", app.config.Env, srv.Addr)
+	logMsg := fmt.Sprintf("Starting server on port %s", app.config.Port)
+	logger.PrintInfo(logMsg, map[string]string{
+		"addr": srv.Addr,
+		"env":  cfg.Env,
+	})
 	err = srv.ListenAndServe()
-	logger.Fatal(err)
+	logger.PrintFatal(err, nil)
 }

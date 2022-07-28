@@ -46,6 +46,25 @@ Date: Wed, 07 Aug 2019 10:10:06 GMT
 }
 ```
 
+### Rate Limiter
+
+We make use of the module `golang.org/x/time/rate` which implements a _token-bucket_ rate-limiter algorithm.
+
+The main idea is:
+
+1. We will have a bucket that starts with b tokens in it.
+2. Each time we receive a HTTP request, we will remove one token from the bucket.
+3. Every 1/`r` seconds, a token is added back to the bucket — up to a maximum of b total
+tokens.
+4. If we receive a HTTP request and the bucket is empty, then we should return a
+`429 Too Many Requests` response.
+
+A simple curl command can test this limiter
+
+```
+for i in {1..6}; do curl <host>/v1/healthcheck; done
+```
+
 ### Running locally
 
 You can start the database dependecy as a Docker container by running the following command:

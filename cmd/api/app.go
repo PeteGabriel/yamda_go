@@ -187,7 +187,7 @@ func (app *Application) resourceEditConflictResponse(w http.ResponseWriter) {
 	problem := models.ErrorProblem{
 		Title:  "unable to update the record",
 		Status: http.StatusConflict,
-		Detail: fmt.Sprint("unable to update the record due to an edit conflict, please try again"),
+		Detail: "unable to update the record due to an edit conflict, please try again",
 	}
 	if err := app.writeError(w, http.StatusConflict, problem, nil); err != nil {
 		app.logger.PrintError(err, nil)
@@ -205,4 +205,10 @@ func (app *Application) serverErrorResponse(w http.ResponseWriter, err error) {
 		app.logger.PrintError(err, nil)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func (app *Application) rateLimitExceededResponse(w http.ResponseWriter) {
+	message := "rate limit exceeded"
+	w.WriteHeader(http.StatusTooManyRequests)
+	w.Write([]byte(message))
 }

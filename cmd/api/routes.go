@@ -19,5 +19,5 @@ func (app *Application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/v1/movies", app.ListMoviesHandler)
 
 	//ensure middleware is always called last
-	return app.recoverPanic(router)
+	return app.recoverPanic(app.rateLimit(router))
 }

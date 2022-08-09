@@ -17,6 +17,10 @@ type Settings struct {
 	ConnMaxOpen     int    `mapstructure:"SQL_CONN_MAX_OPEN_CONN"`
 	ConnMaxIdle     int    `mapstructure:"SQL_CONN_MAX_IDLE_CONN"`
 	HttpReqTimeout  int    `mapstructure:"HTTP_REQUEST_TIMEOUT"`
+	//rate limiter settings
+	LimiterRPS     int  `mapstructure:"RATE_LIMITER_RPS"`
+	LimiterBurst   int  `mapstructure:"RATE_LIMITER_BURST"`
+	LimiterEnabled bool `mapstructure:"RATE_LIMITER_ENABLED"`
 }
 
 func New(envPath string) (*Settings, error) {

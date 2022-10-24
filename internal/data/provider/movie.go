@@ -5,11 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 	"yamda_go/internal/config"
 	"yamda_go/internal/data"
+	"yamda_go/internal/jsonlog"
 	models "yamda_go/internal/models"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -33,19 +33,21 @@ type MovieProvider struct {
 	configs *config.Settings
 }
 
-func New(set *config.Settings) IMovieProvider {
+func New(set *config.Settings, log *jsonlog.Logger) IMovieProvider {
 	db, err := sql.Open(set.DriverName, set.ConnString)
 	if err != nil {
-		log.Fatal(err)
+		log.PrintFatal(err, nil)
 	}
+
 	//validate connection to database is open correctly
 	if err = db.Ping(); err != nil {
-		log.Println("Ping")
-		log.Fatal(err.Error())
+		log.PrintFatal(err, nil)
 	}
+
 	db.SetConnMaxLifetime(time.Minute * time.Duration(set.ConnMaxLifetime))
 	db.SetMaxOpenConns(set.ConnMaxOpen)
 	db.SetMaxIdleConns(set.ConnMaxIdle)
+
 	return &MovieProvider{
 		db:      db,
 		configs: set,

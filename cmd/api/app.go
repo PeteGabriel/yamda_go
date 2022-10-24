@@ -16,30 +16,30 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-//TODO generate this automatically at build time
+// TODO generate this automatically at build time
 const (
 	version = "0.0.1"
 	ID      = "id"
 )
 
-//Application type contains all dependencies for the top layer of
-//the API.
+// Application type contains all dependencies for the top layer of
+// the API.
 type Application struct {
 	config   *config.Settings
 	provider provider.IMovieProvider
 	logger   *jsonlog.Logger
 }
 
-//ParseId parses the parameter id present in a given
-//route params sent via parameters to this function.
-//If the parameter id is not found an error will be returned.
-//method doesn't use any dependencies from our application struct
-//it could just be a regular function, rather than a method on application.
-//But in general, I suggest setting up all your application-specific handlers
-//and helpers so that they are methods on application.
-//It helps maintain consistency in your code structure,
-//and also future-proofs the code for when those handlers and helpers change later,
-//and they do need access to a dependency.
+// ParseId parses the parameter id present in a given
+// route params sent via parameters to this function.
+// If the parameter id is not found an error will be returned.
+// method doesn't use any dependencies from our application struct
+// it could just be a regular function, rather than a method on application.
+// But in general, I suggest setting up all your application-specific handlers
+// and helpers so that they are methods on application.
+// It helps maintain consistency in your code structure,
+// and also future-proofs the code for when those handlers and helpers change later,
+// and they do need access to a dependency.
 func (app *Application) ParseId(p httprouter.Params) (int64, error) {
 	num := p.ByName(ID)
 	id, err := strconv.ParseInt(num, 10, 64)
@@ -49,13 +49,13 @@ func (app *Application) ParseId(p httprouter.Params) (int64, error) {
 	return id, nil
 }
 
-//envelope type. Allow inserting types and self-document them in JSON responses.
+// envelope type. Allow inserting types and self-document them in JSON responses.
 type envelope map[string]interface{}
 
-//Helper method for sending JSON responses in case of error. This takes the destination
+// Helper method for sending JSON responses in case of error. This takes the destination
 // http.ResponseWriter, the HTTP status code to send, the data to encode to JSON, and a
 // header map containing any additional HTTP headers we want to include in the response.
-//By default, the header "Content-Type" is set to "application/problem+json".
+// By default, the header "Content-Type" is set to "application/problem+json".
 func (app *Application) writeError(w http.ResponseWriter, status int, data models.ErrorProblem, headers http.Header) error {
 	resp, err := json.Marshal(data)
 	if err != nil {
@@ -72,10 +72,10 @@ func (app *Application) writeError(w http.ResponseWriter, status int, data model
 	return nil
 }
 
-//Helper method for sending JSON responses. This takes the destination
+// Helper method for sending JSON responses. This takes the destination
 // http.ResponseWriter, the HTTP status code to send, the data to encode to JSON, and a
 // header map containing any additional HTTP headers we want to include in the response.
-//By default, the header "Content-Type" is set to "application/json".
+// By default, the header "Content-Type" is set to "application/json".
 func (app *Application) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
 	resp, err := json.Marshal(data)
 	if err != nil {
@@ -92,9 +92,9 @@ func (app *Application) writeJSON(w http.ResponseWriter, status int, data envelo
 	return nil
 }
 
-//decode body content into JSON content. If any of the validations fails,
-//a human-readable error as well as an error code is returned by this method.
-//Although the default code is 200, the error code should only be considered in case of error.
+// decode body content into JSON content. If any of the validations fails,
+// a human-readable error as well as an error code is returned by this method.
+// Although the default code is 200, the error code should only be considered in case of error.
 func (app *Application) readJSON(w http.ResponseWriter, r *http.Request, dst interface{}) error {
 	//limit size of request body to 1MB
 	maxBytes := 1_048_576

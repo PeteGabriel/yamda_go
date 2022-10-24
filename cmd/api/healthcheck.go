@@ -1,8 +1,6 @@
 package main
 
-import (
-	"net/http"
-)
+import "net/http"
 
 // HealthCheckHandler handler writes a plain-text response with information about the
 // application status, operating environment and version.

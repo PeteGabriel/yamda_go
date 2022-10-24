@@ -26,7 +26,7 @@
 | GET    | /debug/vars               | Display application metrics                     |
 
 
-### Error response
+### Error response :x:
 
 This API tries to make use of a standardized mediatype called `application/problem+json`. You should expect this for all
 the errors in the range 400-4xx.
@@ -45,6 +45,16 @@ Date: Wed, 07 Aug 2019 10:10:06 GMT
     "instance": "/error/123456/details"
 }
 ```
+
+### Adding new environment variables :palm_tree:
+
+This application makes use of a file with `.env` extension. Apart from that, the file `settings.go` is responsible for reading that file and converting it into a structure that can be used in the codebase.
+
+Using the [mapstructure](https://pkg.go.dev/github.com/mitchellh/mapstructure) module we can convert the data from the .env file directly into the data types we find more useful (string to bool, for example). Using the tag available this module exposes functionality to convert one arbitrary Go type into another.
+
+Adding a new variable resolves into just one new line of code. :smile:
+
+
 
 ### Rate Limiter
 
@@ -65,7 +75,7 @@ A simple curl command can test this limiter
 for i in {1..6}; do curl <host>/v1/healthcheck; done
 ```
 
-### Running locally
+### Running locally :house:
 
 You can start the database dependecy as a Docker container by running the following command:
 

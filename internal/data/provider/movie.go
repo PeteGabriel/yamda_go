@@ -33,7 +33,7 @@ type MovieProvider struct {
 	configs *config.Settings
 }
 
-func New(set *config.Settings, log *jsonlog.Logger) IMovieProvider {
+func NewMovieProvider(set *config.Settings, log *jsonlog.Logger) IMovieProvider {
 	db, err := sql.Open(set.DriverName, set.ConnString)
 	if err != nil {
 		log.PrintFatal(err, nil)

@@ -15,7 +15,7 @@ func main() {
 		logger.PrintFatal(err, nil)
 	}
 
-	prov := provider.New(cfg, logger)
+	prov := provider.NewMovieProvider(cfg, logger)
 
 	app := &Application{
 		config:   cfg,

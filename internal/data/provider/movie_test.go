@@ -21,7 +21,7 @@ func setupTestCase() func() {
 	}
 
 	cfg, _ := config.New("./../../../debug.env")
-	prov := New(cfg)
+	prov := NewMovieProvider(cfg)
 	res, err := prov.Insert(mov)
 	if err != nil {
 		log.Fatal(err)
@@ -47,7 +47,7 @@ func TestProvider_InsertMovie_Ok(t *testing.T) {
 	}
 
 	cfg, _ := config.New("./../../../debug.env")
-	prov := New(cfg)
+	prov := NewMovieProvider(cfg)
 
 	res, err := prov.Insert(movie)
 	is.NoErr(err)
@@ -72,7 +72,7 @@ func TestMovieProvider_Update_Ok(t *testing.T) {
 	defer teardown()
 
 	cfg, _ := config.New("./../../../debug.env")
-	prov := New(cfg)
+	prov := NewMovieProvider(cfg)
 
 	//update year
 	mov.Year = 2004
@@ -99,7 +99,7 @@ func TestMovieProvider_Get_Ok(t *testing.T) {
 	defer teardown()
 
 	cfg, _ := config.New("./../../../debug.env")
-	prov := New(cfg)
+	prov := NewMovieProvider(cfg)
 
 	tmp, err := prov.Get(mov.ID)
 	is.NoErr(err)

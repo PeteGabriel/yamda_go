@@ -1,7 +1,7 @@
 module yamda_go
 
 // +heroku goVersion go1.17
-go 1.17
+go 1.18
 
 require (
 	github.com/go-sql-driver/mysql v1.6.0
@@ -11,7 +11,7 @@ require (
 	github.com/spf13/viper v1.9.0
 )
 
-require golang.org/x/crypto v0.1.0 // indirect
+require golang.org/x/crypto v0.1.0
 
 require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect

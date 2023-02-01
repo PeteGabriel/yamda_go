@@ -20,6 +20,7 @@ type IUserProvider interface {
 	Insert(user *models.User) (*models.User, error)
 	GetByEmail(email string) (*models.User, error)
 	Update(user *models.User) error
+	Delete(id int64) error
 }
 
 type UserProvider struct {
@@ -127,6 +128,25 @@ func (u *UserProvider) Update(user *models.User) error {
 	_, err = stmtIns.Exec(user.Name, user.Email, user.Password.Hash, user.Activated, user.Version+1, user.ID, user.Version)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (u *UserProvider) Delete(id int64) error {
+	if id < 1 {
+		return ErrRecordNotFound
+	}
+	query := "DELETE FROM users WHERE id = ?"
+	res, err := u.db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected != 1 {
+		return ErrRecordNotFound
 	}
 	return nil
 }

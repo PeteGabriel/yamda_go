@@ -60,7 +60,7 @@ func (u *UserProvider) Insert(user *models.User) (*models.User, error) {
 	}
 	defer insert.Close()
 
-	args := []interface{}{user.Name, user.Email, user.Password.Hash, user.Activated}
+	args := []interface{}{user.Name, user.Email, user.Password.GetHash(), user.Activated}
 	if err = insert.QueryRow(args...).Scan(&user.ID, &user.CreatedAt, &user.Version); err != nil {
 		return nil, err
 	}
@@ -101,9 +101,14 @@ func (u *UserProvider) GetByEmail(email string) (*models.User, error) {
 		Version   int
 	}{}
 
-	err = row.Scan(&tmp.ID, &tmp.CreatedAt, &tmp.Name, &tmp.Email, &tmp.Password.Hash, &tmp.Activated, &tmp.Version)
+	var hash []byte
+	err = row.Scan(&tmp.ID, &tmp.CreatedAt, &tmp.Name, &tmp.Email, &hash, &tmp.Activated, &tmp.Version)
 	if err != nil {
 		return nil, fmt.Errorf("error scanning data from DB into internal struct: %s", err)
+	}
+
+	if err := tmp.Password.SetHash(hash); err != nil {
+		return nil, fmt.Errorf("error setting password hash: %s", err)
 	}
 
 	return &models.User{
@@ -125,7 +130,7 @@ func (u *UserProvider) Update(user *models.User) error {
 		return err
 	}
 	defer stmtIns.Close()
-	_, err = stmtIns.Exec(user.Name, user.Email, user.Password.Hash, user.Activated, user.Version+1, user.ID, user.Version)
+	_, err = stmtIns.Exec(user.Name, user.Email, user.Password.GetHash(), user.Activated, user.Version+1, user.ID, user.Version)
 	if err != nil {
 		return err
 	}

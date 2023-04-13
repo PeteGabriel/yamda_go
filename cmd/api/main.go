@@ -15,15 +15,15 @@ func main() {
 		logger.PrintFatal(err, nil)
 	}
 
-	prov := provider.NewMovieProvider(cfg, logger)
-
 	app := &Application{
-		config:   cfg,
-		logger:   logger,
-		provider: prov,
+		config:        cfg,
+		logger:        logger,
+		movieProvider: provider.NewMovieProvider(cfg, logger),
+		userProvider:  provider.NewUserProvider(cfg, logger),
 	}
 
 	if err = app.serve(); err != nil {
 		app.logger.PrintFatal(err, nil)
+		panic(err)
 	}
 }

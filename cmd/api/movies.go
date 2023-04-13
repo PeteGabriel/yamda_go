@@ -46,7 +46,7 @@ func (app *Application) CreateMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	//create new movie
-	if _, err := app.provider.Insert(movie); err != nil {
+	if _, err := app.movieProvider.Insert(movie); err != nil {
 		app.serverErrorResponse(w, err)
 		return
 	}
@@ -68,7 +68,7 @@ func (app *Application) GetMovieHandler(w http.ResponseWriter, _ *http.Request, 
 		return
 	}
 
-	movie, err := app.provider.Get(num)
+	movie, err := app.movieProvider.Get(num)
 	if err != nil {
 		switch {
 		case errors.Is(err, provider.ErrRecordNotFound):
@@ -128,7 +128,7 @@ func (app *Application) PartialUpdateMovieHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	movie, err := app.provider.Get(id)
+	movie, err := app.movieProvider.Get(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, provider.ErrRecordNotFound):
@@ -166,7 +166,7 @@ func (app *Application) PartialUpdateMovieHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	err = app.provider.Update(*movie)
+	err = app.movieProvider.Update(*movie)
 	if err != nil {
 		switch {
 		case errors.Is(err, provider.ErrEditConflict):
@@ -193,7 +193,7 @@ func (app *Application) DeleteMovieHandler(w http.ResponseWriter, _ *http.Reques
 		return
 	}
 
-	if err := app.provider.Delete(num); err != nil {
+	if err := app.movieProvider.Delete(num); err != nil {
 		switch {
 		case errors.Is(err, provider.ErrRecordNotFound):
 			app.resourceNotFoundResponse(w, fmt.Errorf("movie with id %d not found", num))
@@ -232,7 +232,7 @@ func (app *Application) ListMoviesHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	movies, meta, err := app.provider.GetAll(input)
+	movies, meta, err := app.movieProvider.GetAll(input)
 	if err != nil {
 		app.serverErrorResponse(w, err)
 	}

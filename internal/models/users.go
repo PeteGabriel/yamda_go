@@ -20,13 +20,20 @@ type User struct {
 type Password struct {
 	//pointer to help distinguish between password not being present in versus a password which is the empty string "".
 	plaintext *string
-	Hash      []byte
+	hash      []byte
+}
+
+func NewPassword(p string, h []byte) *Password {
+	return &Password{
+		plaintext: &p,
+		hash:      h,
+	}
 }
 
 // Matches compare the given password (hash) against the saved hash
 // to verify if passwords match.
 func (p *Password) Matches(plaintext string) (bool, error) {
-	if err := bcrypt.CompareHashAndPassword(p.Hash, []byte(plaintext)); err != nil {
+	if err := bcrypt.CompareHashAndPassword(p.hash, []byte(plaintext)); err != nil {
 		switch {
 		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
 			return false, nil
@@ -37,6 +44,18 @@ func (p *Password) Matches(plaintext string) (bool, error) {
 	return true, nil
 }
 
+func (p *Password) GetHash() []byte {
+	return p.hash
+}
+
+func (p *Password) SetHash(h []byte) error {
+	if p.hash != nil {
+		return errors.New("password already has an hash value")
+	}
+	p.hash = h
+	return nil
+}
+
 // Set password. Generates a hash of the password and set's it.
 func (p *Password) Set(plaintext string) error {
 	hash, err := bcrypt.GenerateFromPassword([]byte(plaintext), 12)
@@ -44,7 +63,7 @@ func (p *Password) Set(plaintext string) error {
 		return err
 	}
 	p.plaintext = &plaintext
-	p.Hash = hash
+	p.hash = hash
 	return nil
 }
 
@@ -70,7 +89,7 @@ func ValidateUser(v *validator.Validator, usr *User) {
 	}
 
 	//panic due to this being a bug of our own code.
-	if usr.Password.Hash == nil {
+	if usr.Password.hash == nil {
 		panic("missing password hash for user")
 	}
 }

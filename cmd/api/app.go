@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/julienschmidt/httprouter"
 	"io"
 	"net/http"
 	"strconv"
@@ -12,8 +13,6 @@ import (
 	"yamda_go/internal/data/provider"
 	"yamda_go/internal/jsonlog"
 	"yamda_go/internal/models"
-
-	"github.com/julienschmidt/httprouter"
 )
 
 // TODO generate this automatically at build time
@@ -25,9 +24,10 @@ const (
 // Application type contains all dependencies for the top layer of
 // the API.
 type Application struct {
-	config   *config.Settings
-	provider provider.IMovieProvider
-	logger   *jsonlog.Logger
+	config        *config.Settings
+	movieProvider provider.IMovieProvider
+	userProvider  provider.IUserProvider
+	logger        *jsonlog.Logger
 }
 
 // ParseId parses the parameter id present in a given

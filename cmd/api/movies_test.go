@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"github.com/julienschmidt/httprouter"
+	is2 "github.com/matryer/is"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -13,9 +15,6 @@ import (
 	"yamda_go/internal/jsonlog"
 	provmock "yamda_go/internal/mocks/data/provider"
 	"yamda_go/internal/models"
-
-	"github.com/julienschmidt/httprouter"
-	is2 "github.com/matryer/is"
 )
 
 var app *Application = nil
@@ -24,9 +23,9 @@ func setupTestCase(p provmock.MovieProviderMock) func() {
 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
 	cfg, _ := config.New("./../../debug.env")
 	app = &Application{
-		logger:   logger,
-		config:   cfg,
-		provider: p,
+		logger:        logger,
+		config:        cfg,
+		movieProvider: p,
 	}
 	return func() {
 		//some teardown
@@ -41,7 +40,7 @@ func setupTestCase(p provmock.MovieProviderMock) func() {
 func TestApplication_CreateMovieHandler_NoInputReceived(t *testing.T) {
 	is := is2.New(t)
 
-	//setup mock for provider
+	//setup mock for movieProvider
 	mock := provmock.MovieProviderMock{}
 	mock.CreateMovieMock = func(movie *models.Movie) (*models.Movie, error) {
 		return nil, nil //dummy return in this case

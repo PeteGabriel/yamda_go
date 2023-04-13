@@ -5,14 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	_ "github.com/go-sql-driver/mysql"
 	"strings"
 	"time"
 	"yamda_go/internal/config"
 	"yamda_go/internal/data"
 	"yamda_go/internal/jsonlog"
-	models "yamda_go/internal/models"
-
-	_ "github.com/go-sql-driver/mysql"
+	"yamda_go/internal/models"
 )
 
 var (

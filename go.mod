@@ -11,7 +11,7 @@ require (
 	github.com/spf13/viper v1.9.0
 )
 
-require golang.org/x/crypto v0.1.0
+require golang.org/x/crypto v0.7.0
 
 require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
@@ -24,9 +24,9 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
-	golang.org/x/net v0.7.0
-	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/net v0.8.0
+	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9
 	gopkg.in/ini.v1 v1.63.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

@@ -18,6 +18,8 @@ func (app *Application) routes() http.Handler {
 
 	router.HandlerFunc(http.MethodGet, "/v1/movies", app.ListMoviesHandler)
 
+	router.Handle(http.MethodPost, "/v1/users", app.RegisterUserHandler)
+
 	//ensure middleware is always called last
 	return app.recoverPanic(app.rateLimit(router))
 }

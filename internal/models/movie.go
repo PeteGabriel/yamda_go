@@ -16,7 +16,7 @@ type Movie struct {
 	CreatedAt []uint8  `json:"-"`
 }
 
-//Validate uses a validator interface to validate the contents of a given movie.
+// Validate uses a validator interface to validate the contents of a given movie.
 func (m *Movie) Validate(v *validator.Validator) {
 	v.Check(m.Title != "", "title", "must be provided")
 	title := strings.TrimSpace(m.Title)
@@ -32,8 +32,8 @@ func (m *Movie) Validate(v *validator.Validator) {
 	v.Check(validator.Unique(m.Genres), "genres", "must not contain duplicate values")
 }
 
-//ValidateWithId performs the same validations as the functions Validate plus validates
-//if the movie has an ID bigger than 0.
+// ValidateWithId performs the same validations as the functions Validate plus validates
+// if the movie has an ID bigger than 0.
 func (m *Movie) ValidateWithId(v *validator.Validator) {
 	v.Check(m.ID > 0, "ID", "ID must be provided and bigger than 0")
 	m.Validate(v)

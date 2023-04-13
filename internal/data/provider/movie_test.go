@@ -1,14 +1,10 @@
 package provider
 
 import (
-	"log"
-	"os"
-	"testing"
-	"yamda_go/internal/config"
-	"yamda_go/internal/jsonlog"
-	"yamda_go/internal/models"
-
 	is2 "github.com/matryer/is"
+	"log"
+	"testing"
+	"yamda_go/internal/models"
 )
 
 var mov *models.Movie
@@ -22,8 +18,7 @@ func setupTestCase() func() {
 		Version: 1,
 	}
 
-	cfg, _ := config.New("./../../../debug.env")
-	prov := NewMovieProvider(cfg, jsonlog.New(os.Stdout, jsonlog.LevelInfo))
+	prov := NewMovieProvider(envConfigs, logger)
 	res, err := prov.Insert(mov)
 	if err != nil {
 		log.Fatal(err)
@@ -48,9 +43,7 @@ func TestProvider_InsertMovie_Ok(t *testing.T) {
 		Version: 1,
 	}
 
-	cfg, _ := config.New("./../../../debug.env")
-
-	prov := NewMovieProvider(cfg, jsonlog.New(os.Stdout, jsonlog.LevelInfo))
+	prov := NewMovieProvider(envConfigs, logger)
 
 	res, err := prov.Insert(movie)
 	is.NoErr(err)
@@ -74,8 +67,7 @@ func TestMovieProvider_Update_Ok(t *testing.T) {
 	teardown := setupTestCase()
 	defer teardown()
 
-	cfg, _ := config.New("./../../../debug.env")
-	prov := NewMovieProvider(cfg, jsonlog.New(os.Stdout, jsonlog.LevelInfo))
+	prov := NewMovieProvider(envConfigs, logger)
 
 	//update year
 	mov.Year = 2004
@@ -101,9 +93,7 @@ func TestMovieProvider_Get_Ok(t *testing.T) {
 	teardown := setupTestCase()
 	defer teardown()
 
-	cfg, _ := config.New("./../../../debug.env")
-
-	prov := NewMovieProvider(cfg, jsonlog.New(os.Stdout, jsonlog.LevelInfo))
+	prov := NewMovieProvider(envConfigs, logger)
 
 	tmp, err := prov.Get(mov.ID)
 	is.NoErr(err)

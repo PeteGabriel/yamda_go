@@ -8,10 +8,10 @@ import (
 	"time"
 )
 
-//Level defines the log level
+// Level defines the log level
 type Level int8
 
-//Represent specfic severity levels
+// Represent specific severity levels
 const (
 	LevelInfo Level = iota //value 0
 	LevelError
@@ -19,7 +19,7 @@ const (
 	LevelOff
 )
 
-//String human readable representation of the level
+// String human-readable representation of the level
 func (l Level) String() string {
 	switch l {
 	case LevelInfo:
@@ -35,7 +35,7 @@ func (l Level) String() string {
 	}
 }
 
-//Logger type specifies the output and the severity level of the logs.
+// Logger type specifies the output and the severity level of the logs.
 type Logger struct {
 	out      io.Writer
 	minLevel Level
@@ -71,7 +71,7 @@ func (l *Logger) print(level Level, msg string, props map[string]string) (int, e
 		Message    string            `json:"message"`
 		Properties map[string]string `json:"properties,omitempty"`
 		Time       string            `json:"time"`
-		Trace      string            `json:"trace,omiitempty"`
+		Trace      string            `json:"trace,omitempty"`
 	}{
 		Level:      level.String(),
 		Message:    msg,
@@ -90,7 +90,7 @@ func (l *Logger) print(level Level, msg string, props map[string]string) (int, e
 		line = []byte("{\"error\":\"error marshalling log message:\"}" + err.Error())
 	}
 
-	//adquire lock for writing
+	//acquire lock for writing
 	l.mu.Lock()
 	defer l.mu.Unlock()
 

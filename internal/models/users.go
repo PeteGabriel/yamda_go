@@ -84,7 +84,7 @@ func ValidateUser(v *validator.Validator, usr *User) {
 
 	ValidateEmail(v, usr.Email)
 
-	if usr.Password.plaintext == nil {
+	if usr.Password.plaintext != nil {
 		ValidatePasswordPlaintext(v, *usr.Password.plaintext)
 	}
 

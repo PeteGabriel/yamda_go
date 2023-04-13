@@ -17,19 +17,19 @@ import (
 	"yamda_go/internal/models"
 )
 
-var app *Application = nil
+var appMoviesTest *Application = nil
 
 func setupTestCase(p provmock.MovieProviderMock) func() {
 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
 	cfg, _ := config.New("./../../debug.env")
-	app = &Application{
+	appMoviesTest = &Application{
 		logger:        logger,
 		config:        cfg,
 		movieProvider: p,
 	}
 	return func() {
 		//some teardown
-		app = nil
+		appMoviesTest = nil
 	}
 }
 
@@ -50,7 +50,7 @@ func TestApplication_CreateMovieHandler_NoInputReceived(t *testing.T) {
 
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", nil)
 	w := httptest.NewRecorder()
-	app.CreateMovieHandler(w, req, nil)
+	appMoviesTest.CreateMovieHandler(w, req, nil)
 
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
@@ -74,7 +74,7 @@ func TestApplication_CreateMovieHandler_InputContainsUnknownFields(t *testing.T)
 	content := `{"title": "Moana", "runtime": "125 mins", "year": 2020, "genres":["drama"], "rating":"PG"}` //rating field is unknown to our api
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
-	app.CreateMovieHandler(w, req, nil)
+	appMoviesTest.CreateMovieHandler(w, req, nil)
 
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
@@ -98,7 +98,7 @@ func TestApplication_CreateMovieHandler_InputContainsMultipleMovies(t *testing.T
 	content := `{"title": "Moana"}{"title": "Top Gun"}` //two movies
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
-	app.CreateMovieHandler(w, req, nil)
+	appMoviesTest.CreateMovieHandler(w, req, nil)
 
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
@@ -122,7 +122,7 @@ func TestApplication_CreateMovieHandler_InputContainsGarbageContent(t *testing.T
 	content := `{"title": "Moana", "runtime": "125 mins", "year": 2020, "genres":["drama"]} :-))`
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
-	app.CreateMovieHandler(w, req, nil)
+	appMoviesTest.CreateMovieHandler(w, req, nil)
 
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
@@ -146,7 +146,7 @@ func TestApplication_CreateMovieHandler_InputNotValidJSON(t *testing.T) {
 	content := make([]byte, 1234)
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(string(content)))
 	w := httptest.NewRecorder()
-	app.CreateMovieHandler(w, req, nil)
+	appMoviesTest.CreateMovieHandler(w, req, nil)
 
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
@@ -170,7 +170,7 @@ func TestApplication_CreateMovieHandler_TitleIsEmptyOrLongerThan500Bytes(t *test
 	content := `{"title": " ", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama"]}`
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
-	app.CreateMovieHandler(w, req, nil)
+	appMoviesTest.CreateMovieHandler(w, req, nil)
 
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
@@ -183,7 +183,7 @@ func TestApplication_CreateMovieHandler_TitleIsEmptyOrLongerThan500Bytes(t *test
 	content = `{"title": "tbXgdREwqSjfnDiDHUDadZPWHXPxFrzquhjpNLBjMXBnydPiwfXPxFrzquhjpNLBjMXBnydPiwfXPxFrzquhjpNLBjMXBnydPiwfXPxFrzquhjpNLBjMXBnydPiwfyuMhBTdaFRHJGDVLFkwCTvTGRcEFqNtkfhUTiAnYzQRXaRtaRrGKaJSbncPpjDAZBWtcCkWzZvJDaMgRzYBQNSpGShDhLmfUcrCRMvjpxZRSNWtqUyVHuQXVwvXKdbtzkYaWGiLgeBxNYwZgMjLtuMWbedRAvjYSWNvtzBzDAvShPWixdaFvWiMmhpVzbmZQQWEJJRaxwDBvYMDSKDWqjreFQfEBUaKrmBufecwWmEcjWmzBtKckqRddWMKacRHdNMutCBtjjTZbkbbhGvpFetxpDXZcHQBBHiWVZEHGDawmJwAntwQHtErEFvbANcrbUJhanuykDhYktjrdkuFRmQVdPFnWcRmrbKpkLtaNCcubDEuyRQYarRyjSQXWFBXbQELUPJRLBMgmNdwUdcmAXaTkwiyzdAdURrhcSCScUCZNzHGTwjWmwSpNAvRAAkuLfb", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama"]}`
 	req = httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w = httptest.NewRecorder()
-	app.CreateMovieHandler(w, req, nil)
+	appMoviesTest.CreateMovieHandler(w, req, nil)
 	resp = w.Result()
 	body, _ = io.ReadAll(resp.Body)
 
@@ -205,7 +205,7 @@ func TestApplication_CreateMovieHandler_YearIsEmptyOrHasInvalidRange(t *testing.
 	content := `{"title": "Casablanca", "runtime": "125 mins", "year": 1800, "genres": ["historical","drama"]}`
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
-	app.CreateMovieHandler(w, req, nil)
+	appMoviesTest.CreateMovieHandler(w, req, nil)
 
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
@@ -218,7 +218,7 @@ func TestApplication_CreateMovieHandler_YearIsEmptyOrHasInvalidRange(t *testing.
 	content = `{"title": "Casablanca", "runtime": "125 mins", "genres": ["historical","drama"], "year": 2030}`
 	req = httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w = httptest.NewRecorder()
-	app.CreateMovieHandler(w, req, nil)
+	appMoviesTest.CreateMovieHandler(w, req, nil)
 	resp = w.Result()
 	body, _ = io.ReadAll(resp.Body)
 	is.Equal(http.StatusUnprocessableEntity, resp.StatusCode)
@@ -239,7 +239,7 @@ func TestApplication_CreateMovieHandler_RuntimeIsNegativeInteger(t *testing.T) {
 	content := `{"title": "Casablanca", "runtime": "-1 mins", "year": 2020, "genres": ["historical","drama"]}`
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
-	app.CreateMovieHandler(w, req, nil)
+	appMoviesTest.CreateMovieHandler(w, req, nil)
 
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
@@ -262,7 +262,7 @@ func TestApplication_CreateMovieHandler_GenresIsEmpty(t *testing.T) {
 	content := `{"title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": []}`
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
-	app.CreateMovieHandler(w, req, nil)
+	appMoviesTest.CreateMovieHandler(w, req, nil)
 
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
@@ -285,7 +285,7 @@ func TestApplication_CreateMovieHandler_GenresMustNotExceed5(t *testing.T) {
 	content := `{"title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama","spy","fiction","romance","fantasy"]}`
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
-	app.CreateMovieHandler(w, req, nil)
+	appMoviesTest.CreateMovieHandler(w, req, nil)
 
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
@@ -308,7 +308,7 @@ func TestApplication_CreateMovieHandler_GenresMustBeUnique(t *testing.T) {
 	content := `{"title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama","historical"]}`
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
-	app.CreateMovieHandler(w, req, nil)
+	appMoviesTest.CreateMovieHandler(w, req, nil)
 
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
@@ -333,7 +333,7 @@ func TestApplication_CreateMovieHandler_Ok(t *testing.T) {
 	content := `{"title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama"]}`
 	req := httptest.NewRequest("POST", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
-	app.CreateMovieHandler(w, req, nil)
+	appMoviesTest.CreateMovieHandler(w, req, nil)
 
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
@@ -374,7 +374,7 @@ func TestApplication_GetMovieHandler_Ok(t *testing.T) {
 			Value: "1",
 		},
 	}
-	app.GetMovieHandler(w, req, p)
+	appMoviesTest.GetMovieHandler(w, req, p)
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
 
@@ -403,7 +403,7 @@ func TestApplication_GetMovieHandler_BadMovieId(t *testing.T) {
 			Value: "7p",
 		},
 	}
-	app.GetMovieHandler(w, req, p)
+	appMoviesTest.GetMovieHandler(w, req, p)
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
 
@@ -432,7 +432,7 @@ func TestApplication_GetMovieHandler_MovieNotFound(t *testing.T) {
 			Value: "700",
 		},
 	}
-	app.GetMovieHandler(w, req, p)
+	appMoviesTest.GetMovieHandler(w, req, p)
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
 
@@ -459,7 +459,7 @@ func TestApplication_UpdateMovieHandler_WithoutSpecifyingID(t *testing.T) {
 	content := `{"title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama"]}`
 	req := httptest.NewRequest("PATCH", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
-	app.UpdateMovieHandler(w, req, nil)
+	appMoviesTest.UpdateMovieHandler(w, req, nil)
 
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
@@ -480,7 +480,7 @@ func TestApplication_UpdateMovieHandler_Ok(t *testing.T) {
 	content := `{"id": 1, "title": "Casablanca", "runtime": "125 mins", "year": 2020, "genres": ["historical","drama"]}`
 	req := httptest.NewRequest("PATCH", "localhost:8081/v1/movies", strings.NewReader(content))
 	w := httptest.NewRecorder()
-	app.UpdateMovieHandler(w, req, nil)
+	appMoviesTest.UpdateMovieHandler(w, req, nil)
 
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
@@ -518,7 +518,7 @@ func TestApplication_UpdateMovieHandler_Partially(t *testing.T) {
 	content := `{"runtime": "125 mins", "genres": ["drama"]}`
 	req := httptest.NewRequest("PATCH", "localhost:8081/v1/movies/1", strings.NewReader(content))
 	w := httptest.NewRecorder()
-	app.PartialUpdateMovieHandler(w, req, httprouter.Params{
+	appMoviesTest.PartialUpdateMovieHandler(w, req, httprouter.Params{
 		httprouter.Param{
 			Key:   "id",
 			Value: "1",
@@ -551,7 +551,7 @@ func TestApplication_DeleteMovieHandler_Ok(t *testing.T) {
 			Value: "1",
 		},
 	}
-	app.DeleteMovieHandler(w, req, p)
+	appMoviesTest.DeleteMovieHandler(w, req, p)
 
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)
@@ -576,7 +576,7 @@ func TestApplication_DeleteMovieHandler_MovieNotFound(t *testing.T) {
 			Value: "1",
 		},
 	}
-	app.DeleteMovieHandler(w, req, p)
+	appMoviesTest.DeleteMovieHandler(w, req, p)
 
 	resp := w.Result()
 	body, _ := io.ReadAll(resp.Body)

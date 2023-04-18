@@ -57,7 +57,7 @@ func TestApplication_RegisterNewUser_Ok(t *testing.T) {
 	respBody, _ := io.ReadAll(resp.Body)
 
 	is.Equal(http.StatusCreated, resp.StatusCode)
-	expectedBody := `{"user":{"id":1234,"created_at":"0001-01-01T00:00:00Z","name":"Jason Bourne","email":"jason@bourne.com","activated":false}}`
+	expectedBody := `{"user":{"id":1234,"created_at":null,"name":"Jason Bourne","email":"jason@bourne.com","activated":false}}`
 	is.Equal(expectedBody, string(respBody))
 }
 

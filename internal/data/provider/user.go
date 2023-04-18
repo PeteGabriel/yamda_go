@@ -61,7 +61,12 @@ func (u *UserProvider) Insert(user *models.User) (*models.User, error) {
 	defer insert.Close()
 
 	args := []interface{}{user.Name, user.Email, user.Password.GetHash(), user.Activated}
-	if err = insert.QueryRow(args...).Scan(&user.ID, &user.CreatedAt, &user.Version); err != nil {
+	row := insert.QueryRow(args...)
+	if (*row).Err() != nil {
+		return nil, ErrRecordNotFound //TODO handle with different error
+	}
+
+	if err = row.Scan(&user.ID, &user.CreatedAt, &user.Version); err != nil {
 		return nil, err
 	}
 
@@ -93,7 +98,7 @@ func (u *UserProvider) GetByEmail(email string) (*models.User, error) {
 
 	tmp := struct {
 		ID        int64
-		CreatedAt time.Time
+		CreatedAt []uint8
 		Name      string
 		Email     string
 		Password  models.Password

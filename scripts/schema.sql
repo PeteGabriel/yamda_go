@@ -24,3 +24,15 @@ INSERT INTO Movie (title, year, runtime, genres) VALUES ("Bill & Ted Face the Mu
 INSERT INTO Movie (title, year, runtime, genres) VALUES ("From Dusk Till Dawn", 1996, 145, "Action,Thriller,Crime");
 INSERT INTO Movie (title, year, runtime, genres) VALUES ("The Knight Before Christmas", 1997, 115, "Comedy,Romance");
 INSERT INTO Movie (title, year, runtime, genres) VALUES ("The Ghost and the Darkness", 1996, 165, "Adventure");
+
+
+
+CREATE TABLE IF NOT EXISTS users (
+  id bigint(20) PRIMARY KEY AUTO_INCREMENT,
+  created_at timestamp(0) NOT NULL DEFAULT NOW(),
+  name varchar(200) NOT NULL,
+  email varchar(50) UNIQUE NOT NULL,
+  password_hash BINARY(28) NOT NULL,
+  activated bool NOT NULL,
+  version int NOT NULL DEFAULT 1
+  );

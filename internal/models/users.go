@@ -3,18 +3,17 @@ package models
 import (
 	"errors"
 	"golang.org/x/crypto/bcrypt"
-	"time"
 	"yamda_go/internal/validator"
 )
 
 type User struct {
-	ID        int64     `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
-	Password  Password  `json:"-"`
-	Activated bool      `json:"activated"`
-	Version   int       `json:"-"`
+	ID        int64    `json:"id"`
+	CreatedAt []uint8  `json:"created_at"`
+	Name      string   `json:"name"`
+	Email     string   `json:"email"`
+	Password  Password `json:"-"`
+	Activated bool     `json:"activated"`
+	Version   int      `json:"-"`
 }
 
 type Password struct {

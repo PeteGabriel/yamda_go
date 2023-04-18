@@ -37,9 +37,11 @@ func TestProvider_InsertUser_Ok(t *testing.T) {
 	user = &models.User{
 		Name:      "Slim",
 		Email:     "slim@example.com",
-		Password:  *models.NewPassword("", []byte("aab4162e5cb0c0da025002c99ef526db")),
 		Activated: false,
 	}
+	user.Password = *models.NewPassword("", []byte{})
+	_ = user.Password.Set("aab4162e5cb0c0da025002c99ef526db")
+
 	prov := NewUserProvider(envConfigs, logger)
 
 	res, err := prov.Insert(user)
@@ -67,9 +69,11 @@ func TestProvider_InsertUser_DuplicateEmail_NotOK(t *testing.T) {
 	user = &models.User{
 		Name:      "Slim",
 		Email:     "slim@example.com",
-		Password:  *models.NewPassword("", []byte("aab4162e5cb0c0da025002c99ef526db")),
 		Activated: false,
 	}
+	user.Password = *models.NewPassword("", []byte{})
+	_ = user.Password.Set("aab4162e5cb0c0da025002c99ef526db")
+
 	prov := NewUserProvider(envConfigs, logger)
 
 	//insert two times
@@ -77,5 +81,4 @@ func TestProvider_InsertUser_DuplicateEmail_NotOK(t *testing.T) {
 
 	is.Equal(res, nil)
 	is.True(err != nil)
-	is.Equal(err.Error(), "")
 }

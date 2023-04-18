@@ -78,7 +78,7 @@ for i in {1..6}; do curl <host>/v1/healthcheck; done
 
 ## Unit Test Coverage
 
-![text_coverage](https://i.imgur.com/JY92oOk.png)
+![text_coverage](https://i.imgur.com/R8INk8N.png)
 
 (Tue 18 April)
 

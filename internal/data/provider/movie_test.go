@@ -1,10 +1,14 @@
+//go:build !skipset1
+// +build !skipset1
+
 package provider
 
 import (
-	is2 "github.com/matryer/is"
 	"log"
 	"testing"
 	"yamda_go/internal/models"
+
+	is2 "github.com/matryer/is"
 )
 
 var mov *models.Movie
